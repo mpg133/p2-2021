@@ -2,7 +2,10 @@
 using namespace std;
 #include <cstdlib>
 #include <iostream>
+#include<sstream>
 #include <vector>
+#include <stdio.h>
+#include<string.h>
 struct Date{
   int day;
   int month;
@@ -126,10 +129,10 @@ void addList(Project &toDoList){
   string ListName=EmptyLoopList(EmptyString);
 
   if(!ExistList(ListName ,toDoList)){
-    List list;
-    list.name=ListName;
+    List newList;
+    newList.name=ListName;
     //put list at end of vector Project.lists
-    toDoList.lists.push_back(list);
+    toDoList.lists.push_back(newList);
   }else{
     error(ERR_LIST_NAME);
   }
@@ -160,22 +163,169 @@ void deleteList(Project &toDoList){
 
 
 }
+//function that return true if date is correct
+bool CheckDate(int &day,int &month,int &year){
+  bool ret=false;
+
+  if(2000<=year && year<=2100 && 0<month && month<12){
+
+      //Months 4,6,9,11 have 30 days
+      if(month==4 || month==6 || month == 9 || month ==11){
+        if(0<day && day<31){
+          ret=true;
+        }
+      }
+      else{
+        //check if is leap(bisiesto)
+        if(month==2 && year%4==0 ){
+          if(year%100 && year%400){
+              if(0<day && day<30){
+                ret=true;
+              }
+
+          }else{
+            if(0<day && day<30){
+              ret=true;
+            }
+
+          }
+        }else if(month==2){
+          if(0<day && day<29){
+            ret=true;
+          }
+        }else{
+          if(0<day && day<32){
+            ret=true;
+          }
+        }
 
 
 
+    }
+  }
+  return ret;
+}
+//function that convert date in string format to Date format
+//this function show errors too
 
 void addTask(Project &toDoList){
 
+  cin.clear();
+  string EmptyString="";
+  string ListName=EmptyLoopList(EmptyString);
+
+  if(ExistList(ListName ,toDoList)){
+
+    cout<<"Enter task name:"<<endl;
+    string taskName;
+    getline(cin,taskName);
+
+    string DateString;
+    cout<<"Enter deadline:"<<endl;
+    getline(cin,DateString);
+
+    //split DateString in day, month and year
+    char delimiter ='/';
+    vector <string> DateVector{};
+    stringstream sstream(DateString);
+    string StringToVector;
+    while(getline(sstream,StringToVector,delimiter)){
+      DateVector.push_back(StringToVector);
+
+    }
+    int day=stoi(DateVector[0]);
+    int month=stoi(DateVector[1]);
+    int year=stoi(DateVector[2]);
+    if(CheckDate(day,month,year)){
+      int time=0;
+      cout<<"Enter expected time:"<<endl;
+      cin>>time;
+      if(0<time && time<181){
+        Task newTask;
+        newTask.name=taskName;
+        newTask.deadline.day=day;
+        newTask.deadline.month=month;
+        newTask.deadline.year=year;
+        newTask.isDone=false;
+        newTask.time=time;
+
+        toDoList.lists[ListPos(ListName,toDoList)].tasks.push_back(newTask);
+
+      }else{
+        error(ERR_TIME);
+      }
+    }else{
+      error(ERR_DATE);
+    }
+
+
+    //for see if date is wrong and throw error, GoodFormatDate return day==-1
+
+  }else{
+    error(ERR_LIST_NAME);
+  }
 
 }
 
 void deleteTask(Project &toDoList){
+  cin.clear();
+  string EmptyString="";
+  string ListName=EmptyLoopList(EmptyString);
+
+  if(ExistList(ListName ,toDoList)){
+    cout<<"Enter task name:"<<endl;
+    string taskName;
+    getline(cin,taskName);
+    int taskSize=toDoList.lists[ListPos(ListName,toDoList)].tasks.size();
+    int listpos=ListPos(ListName,toDoList);
+    if(toDoList.lists[listpos].tasks.size()==0){
+      error(ERR_TASK_NAME);
+    }else{
+      for(int i=0;i<taskSize;i++){
+        if(toDoList.lists[listpos].tasks[i].name==taskName){
+          toDoList.lists[listpos].tasks.erase(toDoList.lists[listpos].tasks.begin()+i);
+        }
+      }
+    }
+
+  }
 }
 
 void toggleTask(Project &toDoList){
 }
 
 void report(const Project &toDoList){
+cout<<"Name: "<<toDoList.name<<endl;
+if(toDoList.description.size()!=0){
+  cout<<"Description: "<<toDoList.description<<endl;
+}
+if(toDoList.lists.size()>0){
+  for(unsigned int i=0;i<toDoList.lists.size();i++){
+    cout<<toDoList.lists[i].name<<endl;
+    if(toDoList.lists[i].tasks.size()!=0){
+
+      for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
+        Task task=toDoList.lists[i].tasks[j];
+        if(task.isDone) {
+          cout<<"[ ] ("<<task.time<<") "
+          <<task.deadline.day<<"-"<<task.deadline.month<<"-"<<task.deadline.year<<
+          " : "<<task.name<<endl;
+        }
+      }
+      for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
+        Task task=toDoList.lists[i].tasks[j];
+        if(!task.isDone) {
+          cout<<"[X] ("<<task.time<<") "
+          <<task.deadline.day<<"-"<<task.deadline.month<<"-"<<task.deadline.year<<
+          " : "<<task.name<<endl;
+        }
+      }
+
+    }
+  }
+}
+
+
 }
 
 int main(){
