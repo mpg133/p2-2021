@@ -80,7 +80,7 @@ void showMainMenu(){
 string EmptyLoopList(string name){
 
   do{
-    cout<<"Enter list name:"<<endl;
+    cout<<"Enter list name:";
     getline(cin,name);
 
   }while(name.empty());
@@ -92,7 +92,7 @@ void editProject(Project &toDoList){
   string ProjectDes="";
   cin.clear();//clean buffer
   do{
-    cout<<"Enter project name:"<<endl;
+    cout<<"Enter project name:";
     getline(cin,ProjectName);
 
     if(ProjectName.empty()){
@@ -100,7 +100,7 @@ void editProject(Project &toDoList){
     }
   }while(ProjectName.empty());
 
-  cout<< "Enter project description:"<<endl;
+  cout<< "Enter project description:";
   getline(cin,ProjectDes);
   toDoList.name=ProjectName;
   toDoList.description=ProjectDes;
@@ -218,12 +218,12 @@ void addTask(Project &toDoList){
 
   if(ExistList(ListName ,toDoList)){
 
-    cout<<"Enter task name:"<<endl;
+    cout<<"Enter task name:";
     string taskName;
     getline(cin,taskName);
 
     string DateString;
-    cout<<"Enter deadline:"<<endl;
+    cout<<"Enter deadline:";
     getline(cin,DateString);
 
     //split DateString in day, month and year
@@ -240,7 +240,7 @@ void addTask(Project &toDoList){
     int year=stoi(DateVector[2]);
     if(CheckDate(day,month,year)){
       int time=0;
-      cout<<"Enter expected time:"<<endl;
+      cout<<"Enter expected time:";
       cin>>time;
       if(0<time && time<181){
         Task newTask;
@@ -275,7 +275,7 @@ void deleteTask(Project &toDoList){
   string ListName=EmptyLoopList(EmptyString);
 
   if(ExistList(ListName ,toDoList)){
-    cout<<"Enter task name:"<<endl;
+    cout<<"Enter task name:";
     string taskName;
     getline(cin,taskName);
     int listpos=ListPos(ListName,toDoList);
@@ -315,7 +315,7 @@ void toggleTask(Project &toDoList){
   string EmptyString="";
   string ListName=EmptyLoopList(EmptyString);
   if(ExistList(ListName,toDoList)){
-      cout<<"Enter task name:"<<endl;
+      cout<<"Enter task name:";
       string TaskName;
       getline(cin,TaskName);
       int taskSize=toDoList.lists[ListPos(ListName,toDoList)].tasks.size();
@@ -335,40 +335,74 @@ void toggleTask(Project &toDoList){
   }
 }
 }
+//function that show the task at report, return string with the correct form.
+void showisDone(List &list){
+  int left=0;
+  int done=0;
+  int leftTime=0;
+  int doneTime=0;
+  Task priority;
+  for(unsigned int j=0;j<list.tasks.size();j++){
+    Task task=list.tasks[j];
+    if(!task.isDone) {
 
-void report(const Project &toDoList){
-cout<<"Name: "<<toDoList.name<<endl;
-if(toDoList.description.size()!=0){
-  cout<<"Description: "<<toDoList.description<<endl;
+      int yearAux=0;
+      int dayAux=0;
+      int monthAux=0;
+      if(yearAux<task.deadline.year && monthAux<task.deadline.month && dayAux< task.deadline.day){
+        priority=task;
+      }
+      cout<<"[ ] ("<<task.time<<") "
+      <<task.deadline.year<<"-"<<task.deadline.month<<"-"<<task.deadline.day<<
+      " : "<<task.name<<endl;
+      done++;
+      doneTime=doneTime+task.time;
+    }
+  }
+  for(unsigned int j=0;j<list.tasks.size();j++){
+    Task task=list.tasks[j];
+    if(task.isDone) {
+      cout<<"[X] ("<<task.time<<") "
+      <<task.deadline.year<<"-"<<task.deadline.month<<"-"<<task.deadline.day<<
+      " : "<<task.name<<endl;
+      left++;
+      leftTime=leftTime+task.time;
+    }
+
+  }
+  cout<<"Total left: "<<left<<"("<<leftTime<<"minutes)"<<endl;
+  cout<<"Total done: "<<done<<"("<<doneTime<<"minutes)"<<endl;
+  if(left!=0){
+    cout<<"Highest priority: "<<priority.name<<"("<<priority.deadline.year<<"-"<<priority.deadline.month<<"-"<<priority.deadline.day<<")";
+  }
 }
-if(toDoList.lists.size()>0){
-  for(unsigned int i=0;i<toDoList.lists.size();i++){
-    cout<<toDoList.lists[i].name<<endl;
-    if(toDoList.lists[i].tasks.size()!=0){
+void report(const Project &toDoList){
 
-      for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
-        Task task=toDoList.lists[i].tasks[j];
-        if(task.isDone) {
-          cout<<"[ ] ("<<task.time<<") "
-          <<task.deadline.day<<"-"<<task.deadline.month<<"-"<<task.deadline.year<<
-          " : "<<task.name<<endl;
-        }
-      }
-      for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
-        Task task=toDoList.lists[i].tasks[j];
-        if(!task.isDone) {
-          cout<<"[X] ("<<task.time<<") "
-          <<task.deadline.day<<"-"<<task.deadline.month<<"-"<<task.deadline.year<<
-          " : "<<task.name<<endl;
-        }
-      }
+List ListAux;
+Task TaskAux;
+cout<<"Name: "<<toDoList.name;
+if(toDoList.description.size()!=0){
+  cout<<"Description: "<<toDoList.description;
+}
+int listSize =toDoList.lists.size();
+if(listSize >0){
+  for(int i=0;i<listSize ;i++){
+    ListAux=toDoList.lists[i];
+    cout<<ListAux.name<<endl;
+
+    int taskSize=ListAux.tasks.size();
+    if(taskSize!=0){
+      TaskAux=ListAux.tasks[i];
+      showisDone(ListAux);
+
+    }
 
     }
   }
 }
 
 
-}
+
 
 int main(){
   Project toDoList;
