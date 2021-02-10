@@ -159,6 +159,8 @@ void deleteList(Project &toDoList){
   string ListName=EmptyLoopList(EmptyString);
   if(ExistList(ListName,toDoList)){
     toDoList.lists.erase(toDoList.lists.begin()+ListPos(ListName,toDoList));
+  }else{
+    error(ERR_LIST_NAME);
   }
 
 
@@ -167,11 +169,11 @@ void deleteList(Project &toDoList){
 bool CheckDate(int &day,int &month,int &year){
   bool ret=false;
 
-  if(2000<=year && year<=2100 && 0<month && month<12){
+  if(2000<=year && year<=2100 && 0<month && month<12 && 0<day){
 
       //Months 4,6,9,11 have 30 days
       if(month==4 || month==6 || month == 9 || month ==11){
-        if(0<day && day<31){
+        if(day<31){
           ret=true;
         }
       }
@@ -179,22 +181,22 @@ bool CheckDate(int &day,int &month,int &year){
         //check if is leap(bisiesto)
         if(month==2 && year%4==0 ){
           if(year%100 && year%400){
-              if(0<day && day<30){
+              if(day<30){
                 ret=true;
               }
 
           }else{
-            if(0<day && day<30){
+            if(day<30){
               ret=true;
             }
 
           }
         }else if(month==2){
-          if(0<day && day<29){
+          if(day<29){
             ret=true;
           }
         }else{
-          if(0<day && day<32){
+          if(day<32){
             ret=true;
           }
         }
@@ -276,22 +278,62 @@ void deleteTask(Project &toDoList){
     cout<<"Enter task name:"<<endl;
     string taskName;
     getline(cin,taskName);
-    int taskSize=toDoList.lists[ListPos(ListName,toDoList)].tasks.size();
     int listpos=ListPos(ListName,toDoList);
+    int taskSize=toDoList.lists[listpos].tasks.size();
     if(toDoList.lists[listpos].tasks.size()==0){
       error(ERR_TASK_NAME);
     }else{
+      int SameNameNum=0;
       for(int i=0;i<taskSize;i++){
         if(toDoList.lists[listpos].tasks[i].name==taskName){
-          toDoList.lists[listpos].tasks.erase(toDoList.lists[listpos].tasks.begin()+i);
+          SameNameNum++;
         }
       }
+      if(SameNameNum==0){
+        error(ERR_TASK_NAME);
+      }else{
+        for(int j=0;j<SameNameNum;j++){
+          for(int i=0;i<taskSize;i++){
+            if(toDoList.lists[listpos].tasks[i].name==taskName){
+
+                  toDoList.lists[listpos].tasks.erase(toDoList.lists[listpos].tasks.begin()+i);
+              }
+            }
+        }
+      }
+
+
     }
 
-  }
+    }
+
 }
 
+
 void toggleTask(Project &toDoList){
+  cin.clear();
+  string EmptyString="";
+  string ListName=EmptyLoopList(EmptyString);
+  if(ExistList(ListName,toDoList)){
+      cout<<"Enter task name:"<<endl;
+      string TaskName;
+      getline(cin,TaskName);
+      int taskSize=toDoList.lists[ListPos(ListName,toDoList)].tasks.size();
+      int listpos=ListPos(ListName,toDoList);
+      if(toDoList.lists[listpos].tasks.size()==0){
+        error(ERR_TASK_NAME);
+      }else{
+        for(int i=0;i<taskSize;i++){
+          if(toDoList.lists[listpos].tasks[i].name==TaskName){
+            if(toDoList.lists[listpos].tasks[i].isDone==false){
+              toDoList.lists[listpos].tasks[i].isDone=true;
+            }else{
+              toDoList.lists[listpos].tasks[i].isDone=false;
+            }
+          }
+        }
+  }
+}
 }
 
 void report(const Project &toDoList){
