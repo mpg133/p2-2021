@@ -80,7 +80,7 @@ void showMainMenu(){
 string EmptyLoopList(string name){
 
   do{
-    cout<<"Enter list name:";
+    cout<<"Enter list name: ";
     getline(cin,name);
 
   }while(name.empty());
@@ -92,7 +92,7 @@ void editProject(Project &toDoList){
   string ProjectDes="";
   cin.clear();//clean buffer
   do{
-    cout<<"Enter project name:";
+    cout<<"Enter project name: ";
     getline(cin,ProjectName);
 
     if(ProjectName.empty()){
@@ -100,7 +100,7 @@ void editProject(Project &toDoList){
     }
   }while(ProjectName.empty());
 
-  cout<< "Enter project description:";
+  cout<< "Enter project description: ";
   getline(cin,ProjectDes);
   toDoList.name=ProjectName;
   toDoList.description=ProjectDes;
@@ -218,12 +218,12 @@ void addTask(Project &toDoList){
 
   if(ExistList(ListName ,toDoList)){
 
-    cout<<"Enter task name:";
+    cout<<"Enter task name: ";
     string taskName;
     getline(cin,taskName);
 
     string DateString;
-    cout<<"Enter deadline:";
+    cout<<"Enter deadline: ";
     getline(cin,DateString);
 
     //split DateString in day, month and year
@@ -240,7 +240,7 @@ void addTask(Project &toDoList){
     int year=stoi(DateVector[2]);
     if(CheckDate(day,month,year)){
       int time=0;
-      cout<<"Enter expected time:";
+      cout<<"Enter expected time: ";
       cin>>time;
       if(0<time && time<181){
         Task newTask;
@@ -275,7 +275,7 @@ void deleteTask(Project &toDoList){
   string ListName=EmptyLoopList(EmptyString);
 
   if(ExistList(ListName ,toDoList)){
-    cout<<"Enter task name:";
+    cout<<"Enter task name: ";
     string taskName;
     getline(cin,taskName);
     int listpos=ListPos(ListName,toDoList);
@@ -346,12 +346,8 @@ void showisDone(List &list){
     Task task=list.tasks[j];
     if(!task.isDone) {
 
-      int yearAux=0;
-      int dayAux=0;
-      int monthAux=0;
-      if(yearAux<task.deadline.year && monthAux<task.deadline.month && dayAux< task.deadline.day){
-        priority=task;
-      }
+
+
       cout<<"[ ] ("<<task.time<<") "
       <<task.deadline.year<<"-"<<task.deadline.month<<"-"<<task.deadline.day<<
       " : "<<task.name<<endl;
@@ -360,8 +356,23 @@ void showisDone(List &list){
     }
   }
   for(unsigned int j=0;j<list.tasks.size();j++){
+    int yearAux=0;
+    int dayAux=0;
+    int monthAux=0;
     Task task=list.tasks[j];
     if(task.isDone) {
+      if(yearAux<task.deadline.day){
+        priority=task;
+      }
+      else if(monthAux<task.deadline.month){
+        priority=task;
+      }
+      else if(dayAux< task.deadline.day){
+              priority=task;
+          }
+
+
+
       cout<<"[X] ("<<task.time<<") "
       <<task.deadline.year<<"-"<<task.deadline.month<<"-"<<task.deadline.day<<
       " : "<<task.name<<endl;
@@ -370,17 +381,19 @@ void showisDone(List &list){
     }
 
   }
-  cout<<"Total left: "<<left<<"("<<leftTime<<"minutes)"<<endl;
-  cout<<"Total done: "<<done<<"("<<doneTime<<"minutes)"<<endl;
+  cout<<"Total left: "<<left<<" ("<<leftTime<<" minutes)"<<endl;
+  cout<<"Total done: "<<done<<" ("<<doneTime<<" minutes)"<<endl;
   if(left!=0){
-    cout<<"Highest priority: "<<priority.name<<"("<<priority.deadline.year<<"-"<<priority.deadline.month<<"-"<<priority.deadline.day<<")";
+    if(priority.name.lenght()!=0){
+      cout<<"Highest priority: "<<priority.name<<"("<<priority.deadline.year<<"-"<<priority.deadline.month<<"-"<<priority.deadline.day<<")";
+    }
   }
 }
 void report(const Project &toDoList){
 
 List ListAux;
 Task TaskAux;
-cout<<"Name: "<<toDoList.name;
+cout<<toDoList.name;
 if(toDoList.description.size()!=0){
   cout<<"Description: "<<toDoList.description;
 }
