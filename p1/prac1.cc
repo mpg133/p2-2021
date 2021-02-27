@@ -105,28 +105,25 @@ string AskName (string name){
   }while(name.empty());
   return name;
 }
-//function that looks if list exist at project
-//return true if exist
-//return false if is empty or not exist
-bool SearchList(string &list_name, Project &toDoList){
-  //boolean to return at end of function
-  bool ret=false;
-  //search at list vector
-    for(unsigned int i=0;i<toDoList.lists.size();i++){
-      if(toDoList.lists[i].name==list_name){
-        ret= true;
-      }
-    }
+//search at list what pos have the name
+//if no name -> return -1;
+//else return pos of name;
 
+int SearchList(string &list_name,Project &toDoList){
+int ret=-1;
+  for(unsigned int i=0;i<toDoList.lists.size();i++){
+    if(toDoList.lists[i].name==list_name){
+      ret= i;
+    }
+}
   return ret;
 }
-
 void addList(Project &toDoList){
   cin.clear();
   string EmptyString="";
   string ListName=AskName(EmptyString);
 
-  if(!SearchList(ListName ,toDoList)){
+  if(SearchList(ListName ,toDoList)==-1){
     List newList;
     newList.name=ListName;
     newList.tasks.clear();
@@ -136,24 +133,13 @@ void addList(Project &toDoList){
     error(ERR_LIST_NAME);
   }
 }
-//search at list what pos have the name
-//is called only when we know that the list is in Project vector!
-//(we have to use it after use ExistList)
-unsigned SearchPosition(string &list_name,Project &toDoList){
 
-  for(unsigned int i=0;i<toDoList.lists.size();i++){
-    if(toDoList.lists[i].name==list_name){
-      return i;
-    }
-}
-  return 0;
-}
 void deleteList(Project &toDoList){
   cin.clear();
   string EmptyString="";
   string ListName=AskName(EmptyString);
-  if(SearchList(ListName,toDoList)){
-    toDoList.lists.erase(toDoList.lists.begin()+SearchPosition(ListName,toDoList));
+  if(SearchList(ListName,toDoList)!=-1){
+    toDoList.lists.erase(toDoList.lists.begin()+SearchList(ListName,toDoList));
   }else{
     error(ERR_LIST_NAME);
   }
@@ -168,8 +154,7 @@ bool CheckDate(int day,int month,int year){
     else if(year%100){leap=false;}
     else{leap=true;}
   }
-
-
+  //check the date
   if(0<month && month<13 && 0<day && day<32 && year>=1900 && year<=2100){
       //Months 4,6,9,11 have 30 days
       if((month==4 || month==6 || month == 9 || month ==11) && day<=30){
@@ -184,9 +169,8 @@ bool CheckDate(int day,int month,int year){
   return ret;
 }
 
-//function that convert date in string format to Date format
-//this function show errors too
-//Class that creates a Task
+
+//Class that creates a Task (copy construct)
 Task CreateTask(string name,int day,int month,int year,int dead){
   Task newTask;
   newTask.name=name;
@@ -196,7 +180,6 @@ Task CreateTask(string name,int day,int month,int year,int dead){
   newTask.time=dead;
   newTask.isDone=false;
   return newTask;
-
 }
 //function that get the date and show errors
 vector <string> getDeadline(string date){
@@ -209,39 +192,35 @@ vector <string> getDeadline(string date){
   while(getline(sstream,StringToVector,delimiter)){
     DateVector.push_back(StringToVector);
   }
-
-  if(!CheckDate(stoi(DateVector[0]),stoi(DateVector[1]),stoi(DateVector[2]))){
-      error(ERR_DATE);
-    }
-      return DateVector;
-
+  return DateVector;
 }
+
 void addTask(Project &toDoList){
 
   cin.clear();
   string EmptyString="";
   string ListName=AskName(EmptyString);
 
-  if(SearchList(ListName ,toDoList)){
+  if(SearchList(ListName ,toDoList)!=-1){
     string taskName,DateString;
     cout<<"Enter task name: ";
     getline(cin,taskName);
     cout<<"Enter deadline: ";
     getline(cin,DateString);
     vector <string> vec=getDeadline(DateString);
-    int time=0;
-    cout<<"Enter expected time: ";
-    cin>>time;
-      if(0<time && time<181){
-        int day=stoi(vec[0]);
-        int month=stoi(vec[1]);
-        int year=stoi(vec[2]);
-        Task newTask=CreateTask(taskName,day,month,year,time);
-        toDoList.lists[SearchPosition(ListName,toDoList)].tasks.push_back(newTask);
+    if(!CheckDate(stoi(vec[0]),stoi(vec[1]),stoi(vec[2]))){
+        error(ERR_DATE);
       }else{
-        error(ERR_TIME);
+        int time=0;
+        cout<<"Enter expected time: ";
+        cin>>time;
+          if(0<time && time<181){
+            Task newTask=CreateTask(taskName,stoi(vec[0]),stoi(vec[1]),stoi(vec[2]),time);
+            toDoList.lists[SearchList(ListName,toDoList)].tasks.push_back(newTask);
+          }else{
+            error(ERR_TIME);
+          }
       }
-
   //for see if date is wrong and throw error, GoodFormatDate return day==-1
   }else{
     error(ERR_LIST_NAME);
@@ -253,17 +232,17 @@ void deleteTask(Project &toDoList){
   string EmptyString="";
   string ListName=AskName(EmptyString);
 
-  if(SearchList(ListName ,toDoList)){
+  if(SearchList(ListName ,toDoList)!=-1){
     cout<<"Enter task name: ";
     string taskName;
     getline(cin,taskName);
-    int taskSize=toDoList.lists[SearchPosition(ListName,toDoList)].tasks.size();
+    int taskSize=toDoList.lists[SearchList(ListName,toDoList)].tasks.size();
     if(taskSize==0){
       error(ERR_TASK_NAME);
     }else{
       int SameNameNum=0;
       for(int i=0;i<taskSize;i++){
-        if(toDoList.lists[SearchPosition(ListName,toDoList)].tasks[i].name==taskName){
+        if(toDoList.lists[SearchList(ListName,toDoList)].tasks[i].name==taskName){
           SameNameNum++;
         }
       }
@@ -272,8 +251,8 @@ void deleteTask(Project &toDoList){
       }else{
         for(int j=0;j<SameNameNum;j++){
           for(int i=0;i<taskSize;i++){
-            if(toDoList.lists[SearchPosition(ListName,toDoList)].tasks[i].name==taskName){
-                  toDoList.lists[SearchPosition(ListName,toDoList)].tasks.erase(toDoList.lists[SearchPosition(ListName,toDoList)].tasks.begin()+i);
+            if(toDoList.lists[SearchList(ListName,toDoList)].tasks[i].name==taskName){
+                  toDoList.lists[SearchList(ListName,toDoList)].tasks.erase(toDoList.lists[SearchList(ListName,toDoList)].tasks.begin()+i);
               }
             }
         }
@@ -287,12 +266,13 @@ void toggleTask(Project &toDoList){
   cin.clear();
   string EmptyString="";
   string ListName=AskName(EmptyString);
-  if(SearchList(ListName,toDoList)){
+  if(SearchList(ListName,toDoList)!=-1){
       cout<<"Enter task name:";
       string TaskName;
       getline(cin,TaskName);
-      int taskSize=toDoList.lists[SearchPosition(ListName,toDoList)].tasks.size();
-      int listpos=SearchPosition(ListName,toDoList);
+      int listpos=SearchList(ListName,toDoList);
+      int taskSize=toDoList.lists[listpos].tasks.size();
+
       if(toDoList.lists[listpos].tasks.size()==0){
         error(ERR_TASK_NAME);
       }else{
@@ -323,32 +303,47 @@ void printTask(const Task &task){
       <<" : "<<task.name<<endl;
 
 }
+//function that return the position of oldest task in a list
+int Oldest(List list){
 
-void showTasks(const List &list){
-  int pos=0;
-  vector <Task> AuxList;
-  for(unsigned int i=0;i<list.tasks.size();i++){
-    AuxList.push_back(list.tasks[i]);
-  }
-  Task oldest=list.tasks[0];
-  for(unsigned j=0;j<AuxList.size();j++){
-    for(unsigned int i=0;i<list.tasks.size();i++){
-      if(list.tasks[i].isDone==false){
-        if(list.tasks[i].deadline.year<oldest.deadline.year &&
-          list.tasks[i].deadline.month<oldest.deadline.month &&
-          list.tasks[i].deadline.day<oldest.deadline.day ){
+int pos=0;
+if(list.tasks.size()==1){
+  pos=0;
+}else{
+  Task old=list.tasks[0];
+    for(unsigned int i=0; i<list.tasks.size();i++){
 
-          oldest=list.tasks[i];
-          pos=i;
-        }
-      }else{
-        oldest=list.tasks[i];
-      }
+      if(!list.tasks[i].isDone){
+
+        if(list.tasks[i].deadline.year<old.deadline.year){ pos=i; }
+        else if(  list.tasks[i].deadline.year==old.deadline.year && list.tasks[i].deadline.month<old.deadline.month){ pos=i; }
+              else if(list.tasks[i].deadline.year==old.deadline.year
+                  && list.tasks[i].deadline.month==old.deadline.month
+                  && list.tasks[i].deadline.day<old.deadline.day){ pos=i; }
+
+      }else{ pos=i; }
+
     }
-    printTask(oldest);
-    AuxList.erase(AuxList.begin() + pos);
-  }
 }
+
+
+return pos;
+}
+//function that print the tasks at report
+void showTasks(const List &list){
+int pos=0;
+List AuxList=list;
+    for(unsigned int i=0; i<=AuxList.tasks.size();i++){
+
+          pos=Oldest(AuxList);
+          printTask(AuxList.tasks[pos]);
+          AuxList.tasks.erase(AuxList.tasks.begin() + pos);
+
+   }
+  //  }
+}
+
+//function that print Total Done and Total left
 void showTotal(const Project &toDoList){
 int left=0;
 int leftTime=0;
@@ -375,17 +370,44 @@ if(noTask==false){
   cout<<"Total done: 0 (0 minutes)"<<endl;
 }
 
-
-
 }
+//function that show list.name and call showTasks to print the task of a list
 void showLists(const Project &toDoList){
     for(unsigned i=0;i<toDoList.lists.size();i++){
       cout<<toDoList.lists[i].name<<endl;
-      if(toDoList.lists[i].tasks.size()!=0){
+      if(toDoList.lists[i].tasks.size()>0){
           showTasks(toDoList.lists[i]);
       }
     }
 
+}
+
+
+
+void showPriority(const Project toDoList){
+Task task;
+int pos=0;
+bool show=false;
+vector<Task> AuxList;
+
+    for(unsigned i=0;i<toDoList.lists.size();i++){
+      for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
+        AuxList.push_back(toDoList.lists[i].tasks[j]);
+      }
+      if(toDoList.lists[i].tasks.size()>0){
+
+        for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
+          if(!toDoList.lists[i].tasks[j].isDone){
+            show=true;
+            pos=Oldest(toDoList.lists[i]);
+            task=toDoList.lists[i].tasks[pos];
+          }
+        }
+      }
+    }
+if(show){
+  cout<<"Highest priority: "<<task.name<<" ("<<task.deadline.year<<"-"<<task.deadline.month<<"-"<<task.deadline.day<<")"<<endl;
+}
 }
 void report(const Project &toDoList){
 
@@ -397,7 +419,7 @@ void report(const Project &toDoList){
     showLists(toDoList);
   }
   showTotal(toDoList);
-
+  showPriority(toDoList);
 }
 
 int main(){
