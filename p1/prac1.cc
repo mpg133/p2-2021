@@ -303,6 +303,54 @@ void printTask(const Task &task){
       <<" : "<<task.name<<endl;
 
 }
+
+
+//function that print Total Done and Total left
+void showTotal(const Project &toDoList){
+int left=0;
+int leftTime=0;
+int doneTime=0;
+int done=0;
+bool noTask=true;
+    for(unsigned int i=0;i<toDoList.lists.size();i++){
+      for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
+        noTask=false;
+        if(toDoList.lists[i].tasks[j].isDone==false){
+          left++;
+          leftTime+=toDoList.lists[i].tasks[j].time;
+        }else{
+          done++;
+          doneTime+=toDoList.lists[i].tasks[j].time;
+        }
+    }
+  }
+if(noTask==false){
+  cout<<"Total left: "<<left<<" ("<<leftTime<<" minutes)"<<endl;
+  cout<<"Total done: "<<done<<" ("<<doneTime<<" minutes)"<<endl;
+}else{
+  cout<<"Total left: 0 (0 minutes)"<<endl;
+  cout<<"Total done: 0 (0 minutes)"<<endl;
+}
+
+}
+//function that show list.name and call showTasks to print the task of a list
+void showLists(const Project &toDoList){
+    for(unsigned int i=0;i<toDoList.lists.size();i++){
+      cout<<toDoList.lists[i].name<<endl;
+      if(toDoList.lists[i].tasks.size()>0){
+        //show Tasks
+        for(unsigned int j=0; j<toDoList.lists[i].tasks.size();j++){
+              if(toDoList.lists[i].tasks[j].isDone==false){
+                printTask(toDoList.lists[i].tasks[j]);
+              }else{
+                  printTask(toDoList.lists[i].tasks[j]);
+              }
+       }
+      }
+    }
+
+}
+
 //function that return the position of oldest task in a list
 int Oldest(List list){
 
@@ -329,85 +377,29 @@ if(list.tasks.size()==1){
 
 return pos;
 }
-//function that print the tasks at report
-void showTasks(const List &list){
-int pos=0;
-List AuxList=list;
-    for(unsigned int i=0; i<=AuxList.tasks.size();i++){
-
-          pos=Oldest(AuxList);
-          printTask(AuxList.tasks[pos]);
-          AuxList.tasks.erase(AuxList.tasks.begin() + pos);
-
-   }
-  //  }
-}
-
-//function that print Total Done and Total left
-void showTotal(const Project &toDoList){
-int left=0;
-int leftTime=0;
-int doneTime=0;
-int done=0;
-bool noTask=true;
-    for(unsigned i=0;i<toDoList.lists.size();i++){
-      for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
-        noTask=false;
-        if(toDoList.lists[i].tasks[i].isDone==false){
-          left++;
-          leftTime+=toDoList.lists[i].tasks[j].time;
-        }else{
-          done++;
-          doneTime+=toDoList.lists[i].tasks[j].time;
-        }
-    }
-  }
-if(noTask==false){
-  cout<<"Total left: "<<left<<" ("<<leftTime<<" minutes)"<<endl;
-  cout<<"Total done: "<<done<<" ("<<doneTime<<" minutes)"<<endl;
-}else{
-  cout<<"Total left: 0 (0 minutes)"<<endl;
-  cout<<"Total done: 0 (0 minutes)"<<endl;
-}
-
-}
-//function that show list.name and call showTasks to print the task of a list
-void showLists(const Project &toDoList){
-    for(unsigned i=0;i<toDoList.lists.size();i++){
-      cout<<toDoList.lists[i].name<<endl;
-      if(toDoList.lists[i].tasks.size()>0){
-          showTasks(toDoList.lists[i]);
-      }
-    }
-
-}
-
-
-
 void showPriority(const Project toDoList){
-Task task;
-int pos=0;
-bool show=false;
-vector<Task> AuxList;
+  Task task;
+  int pos=0;
 
-    for(unsigned i=0;i<toDoList.lists.size();i++){
-      for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
-        AuxList.push_back(toDoList.lists[i].tasks[j]);
-      }
-      if(toDoList.lists[i].tasks.size()>0){
+  List AuxList;
 
-        for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
-          if(!toDoList.lists[i].tasks[j].isDone){
-            show=true;
-            pos=Oldest(toDoList.lists[i]);
-            task=toDoList.lists[i].tasks[pos];
+      for(unsigned i=0;i<toDoList.lists.size();i++){
+
+        if(toDoList.lists[i].tasks.size()>0){
+
+          for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
+            if(!toDoList.lists[i].tasks[j].isDone){
+              AuxList.tasks.push_back(toDoList.lists[i].tasks[j]);
+              }
           }
         }
       }
-    }
-if(show){
-  cout<<"Highest priority: "<<task.name<<" ("<<task.deadline.year<<"-"<<task.deadline.month<<"-"<<task.deadline.day<<")"<<endl;
-}
+      if(AuxList.tasks.size()>0){
+          pos=Oldest(AuxList);
+          task=AuxList.tasks[pos];
+            cout<<"Highest priority: "<<task.name<<" ("<<task.deadline.year<<"-"<<task.deadline.month<<"-"<<task.deadline.day<<")"<<endl;
+      }
+
 }
 void report(const Project &toDoList){
 
@@ -415,7 +407,7 @@ void report(const Project &toDoList){
   if(toDoList.description.size()!=0){
     cout<<"Description: "<<toDoList.description<<endl;
   }
-  if(toDoList.lists.size()!=0){
+  if(toDoList.lists.size()>0){
     showLists(toDoList);
   }
   showTotal(toDoList);
