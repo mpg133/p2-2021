@@ -1,11 +1,14 @@
 //DNI 74395666G Pérez Giménez, Miguel
-using namespace std;
+
 #include <cstdlib>
 #include <iostream>
 #include<sstream>
 #include <vector>
 #include <stdio.h>
 #include<string.h>
+
+using namespace std;
+
 struct Date{
   int day;
   int month;
@@ -39,7 +42,14 @@ enum Error{
   ERR_DATE,
   ERR_TIME
 };
+enum Cad{
+  PROJ_NAME,
+  LIST_NAME,
+  TASK_NAME,
 
+
+
+}
 void error(Error e){
   switch(e){
     case ERR_OPTION:
@@ -61,7 +71,36 @@ void error(Error e){
       cout << "ERROR: wrong expected time" << endl;
   }
 }
+//function that have the couts, like error
+void show(Cad a){
+  switch(a){
+    case PROJ_NAME:
+      cout<<"Enter project name: ";
+      break;
+    case LIST_NAME:
+      cout<<"Enter list name: ";
+      break;
+    case TASK_NAME:
+      cout<<"Enter task name: ";
+      break;
+    case ENTER_DESC:
+      cout<< "Enter project description: ";
+      break;
+    case ENTER_DEADLINE:
+      cout<<"Enter task name: ";
+      break;
+    case ENTER_TIME:
+      cout<<"Enter expected time: ";
+      break;
+    case TOTAL_0:
+      cout<<"Total left: 0 (0 minutes)"<<endl;
+      cout<<"Total done: 0 (0 minutes)"<<endl;
+  }
 
+
+
+
+}
 void showMainMenu(){
   cout << "1- Edit project" << endl
        << "2- Add list" << endl
@@ -74,43 +113,39 @@ void showMainMenu(){
        << "Option: ";
 }
 //-------------------------------------------------------------------------------------
-
-void editProject(Project &toDoList){
-  string ProjectName="";
-  string ProjectDes="";
-
-  cin.clear();//clean buffer
+//function that ask for List name or Project Name until is not empty
+//the variable askProject controls the cout
+string AskName (string name, bool askProject){
   do{
-    cout<<"Enter project name: ";
-    getline(cin,ProjectName);
-    if(ProjectName.empty()){
-      error(ERR_EMPTY);
+    if(askProject){//if is true ask for project name
+      show(PROJ_NAME);
+    }else{
+      show(LIST_NAME);
     }
-  }while(ProjectName.empty());
-
-  cout<< "Enter project description: ";
-  getline(cin,ProjectDes);
-  toDoList.name=ProjectName;
-  toDoList.description=ProjectDes;
-}
-//function that ask List name until is not empty
-//return true if is not empty
-string AskName (string name){
-  do{
-    cout<<"Enter list name: ";
     getline(cin,name);
-    if(name.length()==0){
+    if(name.empty()){
       error(ERR_EMPTY);
     }
   }while(name.empty());
   return name;
 }
-//search at list what pos have the name
-//if no name -> return -1;
-//else return pos of name;
 
-int SearchList(string &list_name,Project &toDoList){
-int ret=-1;
+void editProject(Project &toDoList){
+  cin.clear();//clean buffer
+  string newName=AskName("",true);// new Project name
+  string newDescription="";
+
+  show(ENTER_DESC);
+  getline(cin,newDescription);// new Project Description
+  toDoList.name=newName;
+  toDoList.description=newDescription;
+}
+
+//search at list what pos have the name
+//if name don't exist-> return -1;
+//else return pos of name;
+int SearchList(const string &list_name,const Project &toDoList){
+int ret=-1;//variable that return the function
   for(unsigned int i=0;i<toDoList.lists.size();i++){
     if(toDoList.lists[i].name==list_name){
       ret= i;
@@ -118,17 +153,16 @@ int ret=-1;
 }
   return ret;
 }
+
 void addList(Project &toDoList){
   cin.clear();
-  string EmptyString="";
-  string ListName=AskName(EmptyString);
+  string name=AskName("",false);//name of the list
 
-  if(SearchList(ListName ,toDoList)==-1){
-    List newList;
-    newList.name=ListName;
-    newList.tasks.clear();
-    //put list at end of vector Project.lists
-    toDoList.lists.push_back(newList);
+  if(SearchList(name ,toDoList)==-1){ //if the name don't exist
+    List list; //new List at Project
+    list.name=name;
+    list.tasks.clear();
+    toDoList.lists.push_back(list);//put list at end of vector Project.lists
   }else{
     error(ERR_LIST_NAME);
   }
@@ -136,24 +170,25 @@ void addList(Project &toDoList){
 
 void deleteList(Project &toDoList){
   cin.clear();
-  string EmptyString="";
-  string ListName=AskName(EmptyString);
-  if(SearchList(ListName,toDoList)!=-1){
-    toDoList.lists.erase(toDoList.lists.begin()+SearchList(ListName,toDoList));
+  string name=AskName("",false);//name of the list
+  if(SearchList(name,toDoList)!=-1){
+    toDoList.lists.erase(toDoList.lists.begin()+SearchList(name,toDoList));
   }else{
     error(ERR_LIST_NAME);
   }
 }
 //function that return true if date is correct
 bool CheckDate(int day,int month,int year){
-  bool ret=false;
-  bool leap=false;
+  bool ret=false;//variable that return if date is correct or not
+  bool leap=false;//variable to look if year is leap
+
   //check if is leap(bisiesto)
   if(year%4==0){
     if(year%100 && year%400) {leap=true;}
     else if(year%100){leap=false;}
     else{leap=true;}
   }
+
   //check the date
   if(0<month && month<13 && 0<day && day<32 && year>=1900 && year<=2100){
       //Months 4,6,9,11 have 30 days
@@ -169,54 +204,52 @@ bool CheckDate(int day,int month,int year){
   return ret;
 }
 
-
-//Class that creates a Task (copy construct)
+//Class that creates a Task with (!isDone) / (copy constructor)
 Task CreateTask(string name,int day,int month,int year,int dead){
-  Task newTask;
-  newTask.name=name;
-  newTask.deadline.day=day;
-  newTask.deadline.month=month;
-  newTask.deadline.year=year;
-  newTask.time=dead;
-  newTask.isDone=false;
-  return newTask;
+  Task task;
+  task.name=name;
+  task.deadline.day=day;
+  task.deadline.month=month;
+  task.deadline.year=year;
+  task.time=dead;
+  task.isDone=false;
+  return task;
 }
-//function that get the date and show errors
+//function that get string and return a vector with the date
 vector <string> getDeadline(string date){
-  //split DateString in day, month and year
+  //split String in day, month and year
   char delimiter ='/';
-  vector <string> DateVector{};
+  vector <string> datevector{};//vector that we return
   stringstream sstream(date);
-  string StringToVector;
+  string StringToVector; //the string that we push to vector
   //read until delimeter
   while(getline(sstream,StringToVector,delimiter)){
-    DateVector.push_back(StringToVector);
+  datevector.push_back(StringToVector);
   }
-  return DateVector;
+  return datevector;
 }
 
 void addTask(Project &toDoList){
 
   cin.clear();
-  string EmptyString="";
-  string ListName=AskName(EmptyString);
+  string name=AskName("",false);
 
-  if(SearchList(ListName ,toDoList)!=-1){
-    string taskName,DateString;
-    cout<<"Enter task name: ";
+  if(SearchList(name ,toDoList)!=-1){ //if the list exist...
+    string taskName,deadline;
+    show(TASK_NAME);
     getline(cin,taskName);
-    cout<<"Enter deadline: ";
-    getline(cin,DateString);
-    vector <string> vec=getDeadline(DateString);
+    show(ENTER_DEADLINE);
+    getline(cin,deadline);
+    vector <string> vec=getDeadline(deadline);
     if(!CheckDate(stoi(vec[0]),stoi(vec[1]),stoi(vec[2]))){
         error(ERR_DATE);
       }else{
         int time=0;
-        cout<<"Enter expected time: ";
+        show(ENTER_TIME);
         cin>>time;
           if(0<time && time<181){
-            Task newTask=CreateTask(taskName,stoi(vec[0]),stoi(vec[1]),stoi(vec[2]),time);
-            toDoList.lists[SearchList(ListName,toDoList)].tasks.push_back(newTask);
+            Task task=CreateTask(taskName,stoi(vec[0]),stoi(vec[1]),stoi(vec[2]),time);
+            toDoList.lists[SearchList(name,toDoList)].tasks.push_back(task);
           }else{
             error(ERR_TIME);
           }
@@ -229,34 +262,35 @@ void addTask(Project &toDoList){
 
 void deleteTask(Project &toDoList){
   cin.clear();
-  string EmptyString="";
-  string ListName=AskName(EmptyString);
+  string name=AskName("",false);//List name
 
-  if(SearchList(ListName ,toDoList)!=-1){
-    cout<<"Enter task name: ";
+  if(SearchList(name ,toDoList)!=-1){
+    show(TASK_NAME);
     string taskName;
     getline(cin,taskName);
-    int taskSize=toDoList.lists[SearchList(ListName,toDoList)].tasks.size();
-    if(taskSize==0){
-      error(ERR_TASK_NAME);
-    }else{
-      int SameNameNum=0;
-      for(int i=0;i<taskSize;i++){
-        if(toDoList.lists[SearchList(ListName,toDoList)].tasks[i].name==taskName){
-          SameNameNum++;
+    int size=toDoList.lists[SearchList(name,toDoList)].tasks.size();//the size of vector tasks at list
+    if(size!=0){
+      int SameName=0; //the number of tasks with the same name
+      for(int i=0;i<size;i++){
+        if(toDoList.lists[SearchList(name,toDoList)].tasks[i].name==taskName){
+          SameName++;
         }
       }
-      if(SameNameNum==0){
+      if(SameName==0){ // no task with the name that user give
         error(ERR_TASK_NAME);
       }else{
-        for(int j=0;j<SameNameNum;j++){
-          for(int i=0;i<taskSize;i++){
-            if(toDoList.lists[SearchList(ListName,toDoList)].tasks[i].name==taskName){
-                  toDoList.lists[SearchList(ListName,toDoList)].tasks.erase(toDoList.lists[SearchList(ListName,toDoList)].tasks.begin()+i);
+
+        for(int j=0;j<SameName;j++){ //delete the tasks at vector lists
+          for(int i=0;i<size;i++){
+            if(toDoList.lists[SearchList(name,toDoList)].tasks[i].name==taskName){
+                  toDoList.lists[SearchList(name,toDoList)].tasks.erase(toDoList.lists[SearchList(name,toDoList)].tasks.begin()+i);
               }
             }
         }
       }
+    }else{
+      error(ERR_TASK_NAME);
+
     }
   }
 }
@@ -264,10 +298,9 @@ void deleteTask(Project &toDoList){
 
 void toggleTask(Project &toDoList){
   cin.clear();
-  string EmptyString="";
-  string ListName=AskName(EmptyString);
+  string ListName=AskName("",false);
   if(SearchList(ListName,toDoList)!=-1){
-      cout<<"Enter task name:";
+      show(TASK_NAME);
       string TaskName;
       getline(cin,TaskName);
       int listpos=SearchList(ListName,toDoList);
@@ -328,8 +361,7 @@ if(noTask==false){
   cout<<"Total left: "<<left<<" ("<<leftTime<<" minutes)"<<endl;
   cout<<"Total done: "<<done<<" ("<<doneTime<<" minutes)"<<endl;
 }else{
-  cout<<"Total left: 0 (0 minutes)"<<endl;
-  cout<<"Total done: 0 (0 minutes)"<<endl;
+  show(TOTAL_0);
 }
 
 }
