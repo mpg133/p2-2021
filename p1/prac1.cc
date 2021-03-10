@@ -113,6 +113,15 @@ void showMainMenu(){
        << "q- Quit" << endl
        << "Option: ";
 }
+
+
+//BinTask btask;
+//file.read(char* &btask,sizeof(BinTask);
+
+
+
+//BinTask btask;
+//file.write(const &btask,sizeof(BinTask));
 //-------------------------------------------------------------------------------------
 //function that ask for List name or Project Name until is not empty
 //the variable askProject controls the cout
@@ -191,15 +200,19 @@ bool CheckDate(int day,int month,int year){
   }
 
   //check the date
-  if(0<month && month<13 && 0<day && day<32 && year>=2000 && year<=2100){
+  if(0<month && month<13 && 0<day && day<32 && year>=2000 && year<2100){
       //Months 4,6,9,11 have 30 days
       if((month==4 || month==6 || month == 9 || month ==11) && day<=30){
           ret=true;
       }
       else{
         if(month==2 && isLeap && day<=29) {ret=true;}
-        else if(month==2 && day<=28) {ret=true;}
-        else if(month!=2) {ret=true;}
+        else if(month==2 && !isLeap && day<=28) {ret=true;}
+        else if(month!=2){
+            if(!(month==4 || month==6 || month == 9 || month ==11)  && day<=31){
+              ret=true;
+            }
+        }
       }
   }
   return ret;
@@ -293,11 +306,15 @@ void deleteTask(Project &toDoList){
     }else{
       error(ERR_TASK_NAME);
     }
+  }else{
+    error(ERR_LIST_NAME);
   }
+
 }
 
 void toggleTask(Project &toDoList){
   cin.clear();
+  int numberName=-1;
   string listName=AskName("",false);
   int listPos=SearchList(listName,toDoList);
   if(listPos!=-1){//if list exists...
@@ -309,16 +326,24 @@ void toggleTask(Project &toDoList){
     if(toDoList.lists[listPos].tasks.size()==0){
       error(ERR_TASK_NAME);
     }else{
+
       for(int i=0;i<taskSize;i++){
         if(toDoList.lists[listPos].tasks[i].name==taskName){
-          if(toDoList.lists[listPos].tasks[i].isDone==false){
-            toDoList.lists[listPos].tasks[i].isDone=true;
-          }else{
+          numberName++;
+          if(toDoList.lists[listPos].tasks[i].isDone){//es true -> false;
             toDoList.lists[listPos].tasks[i].isDone=false;
+          }else{
+            toDoList.lists[listPos].tasks[i].isDone=true;
           }
         }
       }
     }
+  }else{
+    error(ERR_LIST_NAME);
+    numberName=-2;
+  }
+  if(numberName==-1){
+    error(ERR_TASK_NAME);
   }
 }
 
@@ -371,9 +396,12 @@ void showLists(const Project &toDoList){
     if(toDoList.lists[i].tasks.size()>0){
       //show Tasks
       for(unsigned int j=0; j<toDoList.lists[i].tasks.size();j++){
-        if(toDoList.lists[i].tasks[j].isDone==false){
+        if(!toDoList.lists[i].tasks[j].isDone){
           printTask(toDoList.lists[i].tasks[j]);
-        }else{
+        }
+      }
+      for(unsigned int j=0; j<toDoList.lists[i].tasks.size();j++){
+        if(toDoList.lists[i].tasks[j].isDone){
           printTask(toDoList.lists[i].tasks[j]);
         }
       }
@@ -385,22 +413,22 @@ void showLists(const Project &toDoList){
 int Oldest(List list){
 
 int oldPos=0;// the position of the oldest
-if(list.tasks.size()==1){
-  oldPos=0;
-}else{
-  Task oldTask=list.tasks[0];
+
   for(unsigned int i=0; i<list.tasks.size();i++){
 
     if(!list.tasks[i].isDone){
-      if(list.tasks[i].deadline.year<oldTask.deadline.year){ oldPos=i; }
-      else if(  list.tasks[i].deadline.year==oldTask.deadline.year && list.tasks[i].deadline.month<oldTask.deadline.month){ oldPos=i; }
-            else if(list.tasks[i].deadline.year==oldTask.deadline.year
-                && list.tasks[i].deadline.month==oldTask.deadline.month
-                && list.tasks[i].deadline.day<oldTask.deadline.day){ oldPos=i; }
+      if(list.tasks[i].deadline.year<list.tasks[oldPos].deadline.year){ oldPos=i; }
 
-    }else{ oldPos=i;}
+      else if(  list.tasks[i].deadline.year==list.tasks[oldPos].deadline.year
+            &&  list.tasks[i].deadline.month<list.tasks[oldPos].deadline.month){ oldPos=i; }
+
+      else if(  list.tasks[i].deadline.year==list.tasks[oldPos].deadline.year
+                && list.tasks[i].deadline.month==list.tasks[oldPos].deadline.month
+                && list.tasks[i].deadline.day<list.tasks[oldPos].deadline.day){ oldPos=i; }
+    }
+
   }
-}
+
 return oldPos;
 }
 
