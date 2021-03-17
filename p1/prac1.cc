@@ -154,7 +154,7 @@ void editProject(Project &toDoList){
 //search at list what pos have the name
 //if name don't exist-> return -1;
 //else return pos of name;
-int SearchList(const string &listName,const Project &toDoList){
+int SearchList(string &listName,Project &toDoList){
 int ret=-1;//variable that return the function
   for(unsigned int i=0;i<toDoList.lists.size();i++){
     if(toDoList.lists[i].name==listName){
@@ -194,13 +194,12 @@ bool CheckDate(int day,int month,int year){
 
   //check if is leap(bisiesto)
   if(year%4==0){
-    if(year%100 && year%400) {isLeap=true;}
-    else if(year%100){isLeap=false;}
+    if(year%100==0 && !(year%400==0)){isLeap=false;}
     else{isLeap=true;}
   }
 
   //check the date
-  if(0<month && month<13 && 0<day && day<32 && year>=2000 && year<2100){
+  if(0<month && month<13 && 0<day && day<32 && year>=2000 && year<=2100){
       //Months 4,6,9,11 have 30 days
       if((month==4 || month==6 || month == 9 || month ==11) && day<=30){
           ret=true;
@@ -279,33 +278,33 @@ void deleteTask(Project &toDoList){
   cin.clear();
   string listName=AskName("",false);
   int SameName=0; //the number of tasks with the same name
-  if(SearchList(listName ,toDoList)!=-1){ //if list exists...
+  int listPos=SearchList(listName ,toDoList);
+  string taskName;
+  if(listPos!=-1){ //if list exists...
     show(TASK_NAME);
-    string taskName;
     getline(cin,taskName);
-    int size=toDoList.lists[SearchList(listName,toDoList)].tasks.size();//the size of vector tasks at list
+    unsigned int size=toDoList.lists[listPos].tasks.size();//the size of vector tasks at list
 
-    if(size!=0){
-      for(int i=0;i<size;i++){
-        if(toDoList.lists[SearchList(listName,toDoList)].tasks[i].name==taskName){
+      for(unsigned int i=0;i<size;i++){
+        if(toDoList.lists[listPos].tasks[i].name==taskName){
           SameName++;
         }
       }
-      if(SameName==0){ // no task with the name that user give
-        error(ERR_TASK_NAME);
-      }else{
-
-        for(int j=0;j<SameName;j++){ //delete the tasks at vector lists
-          for(int i=0;i<size;i++){
-            if(toDoList.lists[SearchList(listName,toDoList)].tasks[i].name==taskName){
-                  toDoList.lists[SearchList(listName,toDoList)].tasks.erase(toDoList.lists[SearchList(listName,toDoList)].tasks.begin()+i);
+      if(SameName!=0){
+        for(int j=0;j<SameName;j++){ //borra la tareas con el mismo nombre
+          for(unsigned int i=0;i<toDoList.lists[listPos].tasks.size();i++){
+            if(toDoList.lists[listPos].tasks[i].name==taskName){
+                  //delete the tasks at vector lists
+                  toDoList.lists[listPos].tasks.erase(toDoList.lists[listPos].tasks.begin()+i);
+                  i--;
               }
             }
         }
+
+      }else{// no task with the name that user give
+        error(ERR_TASK_NAME);
       }
-    }else{
-      error(ERR_TASK_NAME);
-    }
+
   }else{
     error(ERR_LIST_NAME);
   }
@@ -348,7 +347,7 @@ void toggleTask(Project &toDoList){
 }
 
 //fuction that print one task
-void printTask(const Task &task){
+void printTask(Task &task){
   cout<<"[";
   if(!task.isDone){
     cout<<" ";
@@ -363,7 +362,7 @@ void printTask(const Task &task){
 }
 
 //function that print Total Done and Total left
-void showTotal(const Project &toDoList){
+void showTotal(Project &toDoList){
 int left=0;
 int leftTime=0;
 int doneTime=0;
@@ -390,7 +389,7 @@ bool noTask=true;
 
 }
 //function that show list.name and call showTasks to print the task of a list
-void showLists(const Project &toDoList){
+void showLists(Project &toDoList){
   for(unsigned int i=0;i<toDoList.lists.size();i++){
     cout<<toDoList.lists[i].name<<endl;
     if(toDoList.lists[i].tasks.size()>0){
@@ -432,7 +431,7 @@ int oldPos=0;// the position of the oldest
 return oldPos;
 }
 
-void showPriority(const Project toDoList){
+void showPriority(Project toDoList){
   Task prioTask;
   int oldPos=0;
   List AuxList;
@@ -452,7 +451,7 @@ void showPriority(const Project toDoList){
   }
 
 }
-void report(const Project &toDoList){
+void report(Project &toDoList){
 
   cout<<"Name: "<<toDoList.name<<endl;
   if(toDoList.description.size()!=0){
