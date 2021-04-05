@@ -8,6 +8,9 @@
 #include<string.h>
 
 using namespace std;
+//global variables for char[] name of BIN structs
+const int KMAXNAME=20;
+const int KMAXDESC=40;
 
 struct Date{
   int day;
@@ -33,14 +36,46 @@ struct Project{
   string description;
   vector<List> lists;
 };
+//news structs
 
+struct ToDo{
+int nextId;
+string name;
+vector<Project> projects;
+};
+
+struct BinTask{
+char name[KMAXNAME];
+Date deadline;
+bool isDone;
+int time;
+};
+
+struct BinList{
+char name[KMAXNAME];
+unsigned numTasks;
+};
+
+struct BinProject{
+char name[KMAXNAME];
+char description[KMAXDESC];
+unsigned numLists;
+};
+struct BinToDo{
+char name[KMAXNAME];
+unsigned numProjects;
+};
 enum Error{
   ERR_OPTION,
   ERR_EMPTY,
   ERR_LIST_NAME,
   ERR_TASK_NAME,
   ERR_DATE,
-  ERR_TIME
+  ERR_TIME,
+  ERR_ID,
+  ERR_PROJECT_NAME,
+  ERR_FILE,
+  ERR_ARGS
 };
 void error(Error e){
   switch(e){
@@ -61,6 +96,17 @@ void error(Error e){
       break;
     case ERR_TIME:
       cout << "ERROR: wrong expected time" << endl;
+      case ERR_ID:
+        cout << "ERROR: wrong project id" << endl;
+        break;
+      case ERR_PROJECT_NAME:
+        cout << "ERROR: wrong project name" << endl;
+        break;
+      case ERR_FILE:
+        cout << "ERROR: cannot open file" << endl;
+        break;
+      case ERR_ARGS:
+        cout << "ERROR: wrong arguments" << endl;
   }
 }
 enum Cad{
@@ -93,9 +139,13 @@ void show(Cad a){
     case ENTER_TIME:
       cout<<"Enter expected time: ";
       break;
+    case PROJ_ID:
+      cout<<"Enter project id: ";
+      break;
     case TOTAL_0:
       cout<<"Total left: 0 (0 minutes)"<<endl;
       cout<<"Total done: 0 (0 minutes)"<<endl;
+      break;
   }
 
 
@@ -103,6 +153,20 @@ void show(Cad a){
 
 }
 void showMainMenu(){
+  cout << "1- Project menu" << endl
+       << "2- Add project" << endl
+       << "3- Delete project" << endl
+       << "4- Import projects" << endl
+       << "5- Export projects" << endl
+       << "6- Load data" << endl
+       << "7- Save data" << endl
+       << "8- Summary"<<endl
+       << "q- Quit" << endl
+       << "Option: ";
+
+
+}
+void showProjectMenu(){
   cout << "1- Edit project" << endl
        << "2- Add list" << endl
        << "3- Delete list" << endl
@@ -463,18 +527,17 @@ void report(Project &toDoList){
   showTotal(toDoList);
   showPriority(toDoList);
 }
-
-int main(){
-  Project toDoList;
-  toDoList.id=1;
-  char option;
-
+// ----------------------------------------------------------------------------------------------------------------------
+// -----------------------------------FUNCIONES PRACTICA 2---------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------------
+void menu(){
+  char optionProject;
   do{
-    showMainMenu();
-    cin >> option;
+    showProjectMenu();
+    cin >> optionProject;
     cin.get();
 
-    switch(option){
+    switch(optionProject){
       case '1': editProject(toDoList);
                 break;
       case '2': addList(toDoList);
@@ -489,11 +552,62 @@ int main(){
                 break;
       case '7': report(toDoList);
                 break;
-      case 'q': break;
+      case 'b': break;
       default: error(ERR_OPTION);
     }
-  }while(option!='q');
+  }while(optionProject!='b');
+}
+void menuProject(){
+  int id;
+  show(PROJ_ID);
+  cin>>id;
+  //si no existe proyecto
+  menu();
+  //else
+  //error(ERR_ID);
+}
+void addProject(){}
+void deleteProject(){}
+void import(){}
+void export(){}
+void load(){}
+void save(){}
+void summary(){}
+int main(){
+  Project toDoList;
+  toDoList.id=1;
+
+  ToDo toDo;
+  toDo.name="My ToDo list";
+  toDo.nextId=1;
+
+  char option;
+
+  do{
+    showMainMenu();
+    cin>>option;
+    cin.get();
+    switch(option){
+      case '1': menuProject();
+                break;
+      case '2': addProject();
+                break;
+      case '3': deleteProject();
+                break;
+      case '4': import();
+                break;
+      case '5': export();
+                break;
+      case '6': load();
+                break;
+      case '7': save();
+                break;
+      case '8': summary();
+                break;
+      case 'q': break;
+      default: error(ERR_OPTION);
+  }while(option!=q);
+
 
   return 0;
 }
-
