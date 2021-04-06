@@ -116,7 +116,8 @@ enum Cad{
   ENTER_DESC,
   ENTER_DEADLINE,
   ENTER_TIME,
-  TOTAL_0
+  TOTAL_0,
+  PROJ_ID
 };
 //function that have the couts, like error
 void show(Cad a){
@@ -174,7 +175,7 @@ void showProjectMenu(){
        << "5- Delete task" << endl
        << "6- Toggle task" << endl
        << "7- Report" << endl
-       << "q- Quit" << endl
+       << "b- Back to main menu" << endl
        << "Option: ";
 }
 
@@ -212,7 +213,10 @@ void editProject(Project &toDoList){
   show(ENTER_DESC);
   getline(cin,newDescription);// new Project Description
   toDoList.name=newName;
-  toDoList.description=newDescription;
+  if(newDescription!=""){
+      toDoList.description=newDescription;
+  }
+
 }
 
 //search at list what pos have the name
@@ -432,6 +436,7 @@ int leftTime=0;
 int doneTime=0;
 int done=0;
 bool noTask=true;
+if(toDoList.lists.size()>0){
   for(unsigned int i=0;i<toDoList.lists.size();i++){
     for(unsigned int j=0;j<toDoList.lists[i].tasks.size();j++){
       noTask=false;
@@ -444,6 +449,7 @@ bool noTask=true;
       }
     }
   }
+}
   if(noTask==false){
     cout<<"Total left: "<<left<<" ("<<leftTime<<" minutes)"<<endl;
     cout<<"Total done: "<<done<<" ("<<doneTime<<" minutes)"<<endl;
@@ -473,7 +479,7 @@ void showLists(Project &toDoList){
 }
 
 //function that return the position of oldest task in a list
-int Oldest(List list){
+int Oldest(List &list){
 
 int oldPos=0;// the position of the oldest
 
@@ -495,7 +501,7 @@ int oldPos=0;// the position of the oldest
 return oldPos;
 }
 
-void showPriority(Project toDoList){
+void showPriority(Project &toDoList){
   Task prioTask;
   int oldPos=0;
   List AuxList;
@@ -530,13 +536,29 @@ void report(Project &toDoList){
 // ----------------------------------------------------------------------------------------------------------------------
 // -----------------------------------FUNCIONES PRACTICA 2---------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------
-void menu(){
+//function that ask for id and return the project if project exist
+int SearchProjectID(ToDo &toDo){
+  int id;
+  show(PROJ_ID);
+  cin>>id;
+
+  for(unsigned i=0;i<toDo.projects.size();i++){
+    if(toDo.projects[i].id==id){
+      return i;
+    }
+  }
+  return -1;
+}
+
+
+
+void menu(Project &toDoList){
   char optionProject;
+
   do{
     showProjectMenu();
-    cin >> optionProject;
+    cin>>optionProject;
     cin.get();
-
     switch(optionProject){
       case '1': editProject(toDoList);
                 break;
@@ -557,25 +579,56 @@ void menu(){
     }
   }while(optionProject!='b');
 }
-void menuProject(){
-  int id;
-  show(PROJ_ID);
-  cin>>id;
-  //si no existe proyecto
-  menu();
-  //else
-  //error(ERR_ID);
+void menuProject(ToDo &toDo){
+
+  int pos=SearchProjectID(toDo);
+
+  if(pos!=-1){//si existe proyecto
+    menu(toDo.projects[pos]);
+  }else{
+    error(ERR_ID);
+  }
+
+
 }
-void addProject(){}
-void deleteProject(){}
-void import(){}
-void export(){}
-void load(){}
-void save(){}
-void summary(){}
+//function that return if project has that name
+bool SearchProjectName(string &ProjectName,ToDo &toDo){
+  for(unsigned int i=0;i<toDo.projects.size();i++){
+    if(toDo.projects[i].name==ProjectName){
+      return false;
+    }
+  }
+  return true;
+}
+bool addProject(ToDo &toDo){
+  Project ret;
+  cin.clear();//clean buffer
+  string newName=AskName("",true);
+  string newDescription="";
+  if(SearchProjectName(newName,toDo)){
+    show(ENTER_DESC);
+    getline(cin,newDescription);// new Project Description
+    ret.name=newName;
+    ret.description=newDescription;
+    ret.id=toDo.nextId;
+    toDo.projects.push_back(ret);
+
+    return true;
+  }else{
+    error(ERR_PROJECT_NAME);
+    return false;
+  }
+
+}
+/*
+deleteProject(){}
+import(){}
+export(){}
+load(){}
+save(){}
+summary(){}*/
 int main(){
-  Project toDoList;
-  toDoList.id=1;
+
 
   ToDo toDo;
   toDo.name="My ToDo list";
@@ -588,11 +641,16 @@ int main(){
     cin>>option;
     cin.get();
     switch(option){
-      case '1': menuProject();
+      case '1': menuProject(toDo);
                 break;
-      case '2': addProject();
+      case '2':
+                if(addProject(toDo)){
+
+                  toDo.nextId++;
+                }
+
                 break;
-      case '3': deleteProject();
+      /*case '3': deleteProject();
                 break;
       case '4': import();
                 break;
@@ -603,10 +661,11 @@ int main(){
       case '7': save();
                 break;
       case '8': summary();
-                break;
+                break;*/
       case 'q': break;
       default: error(ERR_OPTION);
-  }while(option!=q);
+    }
+  }while(option!='q');
 
 
   return 0;
