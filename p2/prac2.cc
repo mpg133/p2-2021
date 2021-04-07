@@ -6,6 +6,7 @@
 #include <vector>
 #include <stdio.h>
 #include<string.h>
+#include <fstream>
 
 using namespace std;
 //global variables for char[] name of BIN structs
@@ -117,7 +118,9 @@ enum Cad{
   ENTER_DEADLINE,
   ENTER_TIME,
   TOTAL_0,
-  PROJ_ID
+  PROJ_ID,
+  FILE_NAME,
+  CONFIRM
 };
 //function that have the couts, like error
 void show(Cad a){
@@ -146,6 +149,12 @@ void show(Cad a){
     case TOTAL_0:
       cout<<"Total left: 0 (0 minutes)"<<endl;
       cout<<"Total done: 0 (0 minutes)"<<endl;
+      break;
+    case FILE_NAME:
+      cout<<"Enter filename: ";
+      break;
+    case CONFIRM:
+      cout<<"Confirm [Y/N]?: ";
       break;
   }
 
@@ -591,8 +600,9 @@ void menuProject(ToDo &toDo){
 
 
 }
-//function that return if project has that name
+//function that return false if project has that name
 bool SearchProjectName(string &ProjectName,ToDo &toDo){
+
   for(unsigned int i=0;i<toDo.projects.size();i++){
     if(toDo.projects[i].name==ProjectName){
       return false;
@@ -620,15 +630,123 @@ bool addProject(ToDo &toDo){
   }
 
 }
+
+void deleteProject(ToDo &toDo){
+  int pos=SearchProjectID(toDo);
+  if(pos!=-1){//si existe proyecto
+    //borrar proyecto del vector projects
+      toDo.projects.erase(toDo.projects.begin()+pos);
+  }else{
+    error(ERR_ID);
+  }
+}
+//function that ask for project name
+
+string getFileName(){
+  string FileName;
+  cin.clear();
+  show(FILE_NAME);
+  getline(cin,FileName);
+
+  return FileName;
+}
+//funcion que quita el primer caracter del string
+string cutString(string &s){
+
+char charString [s.length()+1];
+  for(unsigned i=0;i<s.length()+1;i++){
+    if((i+1)==s.length()){
+      charString[i]='\0';
+    }else{
+      charString[i]=s[i+1];
+    }
+
+  }
+  s=charString;
+  return s;
+}
+//funcion que devuelve el primer caracter del string
+char PrimerCaracter(string &s){
+
+    return s[0];
+
+}
+void import(ToDo &toDo){
+  string line;
+  bool errorName=false;
+  bool endProject=false;
+  vector<Project> projects;
+  vector<List> lists;
+  vector <Task> tasks;
+  string ProjectName, Description,ListName;
+  string FileName=getFileName();
+  ifstream file(FileName);//lectura
+  if(file.is_open()){
+    while(getline(file,line)){//leemos linea a linea
+      errorName=false;
+      //inicio proyecto
+      if(line=="<"){
+
+        getline(file,line);
+        if(PrimerCaracter(line)=='#'){
+          ProjectName=cutString(line);
+          if(!SearchProjectName(ProjectName,toDo)){
+            errorName=true;
+          }
+        }
+        getline(file,line2);
+        if(!errorName && PrimerCaracter(line)=='*'){
+          Description=cutString(line);
+          getline(file,line2);
+        }
+        if(!errorName && PrimerCaracter(line)=='@'){
+          ListName=cutString(line);
+          /*while(getline(file,line)){//leemos tareas
+            if(PrimerCaracter(line)=='@'){
+              break;
+            }else if(PrimerCaracter(line)=='>'){
+              endProject=true;
+              break;
+            }*/
+          }
+        }
+        if(errorName){
+          error(ERR_PROJECT_NAME);
+        }
+      }
+
+      }
+
+    file.close();
+  }else{
+    file.close();
+    error(ERR_FILE);
+  }
+
+
+
+}
 /*
-deleteProject(){}
-import(){}
-export(){}
+do{
+  show(CONFIRM);
+  cin>>confirm;
+  cin.get();
+  if(confirm=='Y' || confirm == 'y'){
+    return 2;
+  }else if(confirm=='N' || confirm=='n'){
+    return 3;
+  }
+}while (!exit);
+
+*/
+/*iexport(){}
 load(){}
 save(){}
 summary(){}*/
-int main(){
-
+int main(int argc,char *argv[]){
+  //parsing arguments
+  //for(int i=1;i<argc;i++){
+    //string arg=argv[i];
 
   ToDo toDo;
   toDo.name="My ToDo list";
@@ -650,11 +768,11 @@ int main(){
                 }
 
                 break;
-      /*case '3': deleteProject();
+      case '3': deleteProject(toDo);
                 break;
-      case '4': import();
+      case '4': import(toDo);
                 break;
-      case '5': export();
+    /*  case '5': export();
                 break;
       case '6': load();
                 break;
