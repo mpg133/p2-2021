@@ -667,23 +667,51 @@ char charString [s.length()+1];
 }
 //funcion que devuelve el primer caracter del string
 char PrimerCaracter(string &s){
+      return s[0];
+}
+//function that return 1 if date and time are correct
+//return 0 if date is wrong and 2 if time is wrong
+int canCreateTask(string &line){
+      char delimiter ='|';
+      vector <string> taskDivided{};
 
-    return s[0];
+      stringstream sstream(line);
+      string StringToVector; //the string that we push to vector
+      //read until delimeter
+      while(getline(sstream,StringToVector,delimiter)){
+        taskDivided.push_back(StringToVector); //save day,year and month
+      }
+      vector <string> deadline=getDeadline(taskDivided[1]);//function that convert the deadline
+      if(!CheckDate(stoi(deadline[0]),stoi(deadline[1]),stoi(deadline[2]))){
+        return 0;
+      }else if(0>stoi(taskDivided[3]) || stoi(taskDivided[3])>181){
+        return 2;
+      }else{
+        return 1;
+      }
+}
+
+//function that creates a task with a string
+void createTaskFile(string &taskString,ToDo &toDo ){
+
+
+
+}
+//create a project
+void createProject(Project &project,ToDo &toDo){
 
 }
 void import(ToDo &toDo){
-  string line;
   bool errorName=false;
   bool endProject=false;
-  vector<Project> projects;
-  vector<List> lists;
-  vector <Task> tasks;
-  string ProjectName, Description,ListName;
+  string ProjectName,Description,ListName,taskname,isDone,time,date,line;
   string FileName=getFileName();
+  Project project;
   ifstream file(FileName);//lectura
   if(file.is_open()){
     while(getline(file,line)){//leemos linea a linea
       errorName=false;
+      endProject=false;
       //inicio proyecto
       if(line=="<"){
 
@@ -694,21 +722,39 @@ void import(ToDo &toDo){
             errorName=true;
           }
         }
-        getline(file,line2);
+        getline(file,line);
         if(!errorName && PrimerCaracter(line)=='*'){
           Description=cutString(line);
-          getline(file,line2);
+          getline(file,line);
+        }
+        if(!errorName){
+          project.name=ProjectName;
+          project.description=Description;
+
+          createProject(project,toDo);
         }
         if(!errorName && PrimerCaracter(line)=='@'){
           ListName=cutString(line);
-          /*while(getline(file,line)){//leemos tareas
-            if(PrimerCaracter(line)=='@'){
-              break;
-            }else if(PrimerCaracter(line)=='>'){
-              endProject=true;
-              break;
-            }*/
+          while(!endProject){
+            while(getline(file,line)){//leemos tareas
+              if(PrimerCaracter(line)=='@'){
+                break;
+              }else if(PrimerCaracter(line)=='>'){
+                endProject=true;
+                break;
+              }else{
+                if(canCreateTask(line)==1){
+                 createTaskFile(line);
+                }else if(canCreateTask(line)==0){
+                  error(ERR_DATE);
+                }else if(canCreateTask(line)==2){
+                  error(ERR_TIME);
+                }
+
+              }
+            }
           }
+
         }
         if(errorName){
           error(ERR_PROJECT_NAME);
