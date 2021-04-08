@@ -97,6 +97,7 @@ void error(Error e){
       break;
     case ERR_TIME:
       cout << "ERROR: wrong expected time" << endl;
+      break;
       case ERR_ID:
         cout << "ERROR: wrong project id" << endl;
         break;
@@ -222,9 +223,8 @@ void editProject(Project &toDoList){
   show(ENTER_DESC);
   getline(cin,newDescription);// new Project Description
   toDoList.name=newName;
-  if(newDescription!=""){
-      toDoList.description=newDescription;
-  }
+  toDoList.description=newDescription;
+
 
 }
 
@@ -644,25 +644,27 @@ void deleteProject(ToDo &toDo){
 
 string getFileName(){
   string FileName;
-  cin.clear();
-  show(FILE_NAME);
-  getline(cin,FileName);
 
+  show(FILE_NAME);
+  //  cin.ignore();
+  getline(cin,FileName);
   return FileName;
 }
 //funcion que quita el primer caracter del string
 string cutString(string &s){
+if(s.length()>0){
+  char charString [s.length()+1];
+    for(unsigned i=0;i<s.length();i++){
+      if((i)==s.length()){
+        charString[i]='\0';
+      }else{
+        charString[i]=s[i+1];
+      }
 
-char charString [s.length()+1];
-  for(unsigned i=0;i<s.length()+1;i++){
-    if((i+1)==s.length()){
-      charString[i]='\0';
-    }else{
-      charString[i]=s[i+1];
     }
+    s=charString;
+}
 
-  }
-  s=charString;
   return s;
 }
 //funcion que devuelve el primer caracter del string
@@ -671,10 +673,10 @@ char PrimerCaracter(string &s){
 }
 //function that return 1 if date and time are correct
 //return 0 if date is wrong and 2 if time is wrong
-int canCreateTask(string &line){
+Task CreateTaskFile(string &line){
       char delimiter ='|';
       vector <string> taskDivided{};
-
+      Task ret;
       stringstream sstream(line);
       string StringToVector; //the string that we push to vector
       //read until delimeter
@@ -683,86 +685,92 @@ int canCreateTask(string &line){
       }
       vector <string> deadline=getDeadline(taskDivided[1]);//function that convert the deadline
       if(!CheckDate(stoi(deadline[0]),stoi(deadline[1]),stoi(deadline[2]))){
-        return 0;
+        error(ERR_DATE);
+        ret.deadline.day=-1;
+
       }else if(0>stoi(taskDivided[3]) || stoi(taskDivided[3])>181){
-        return 2;
+        error(ERR_TIME);
+        ret.deadline.day=-2;
       }else{
-        return 1;
+        ret=CreateTask(taskDivided[0],stoi(deadline[0]),stoi(deadline[1]),stoi(deadline[2]),stoi(taskDivided[3]));
+        if(taskDivided[2]=="F"){
+          ret.isDone=false;
+        }else{
+          ret.isDone=true;
+        }
       }
+      return ret;
 }
 
-//function that creates a task with a string
-void createTaskFile(string &taskString,ToDo &toDo ){
-
-
-
-}
-//create a project
-void createProject(Project &project,ToDo &toDo){
-
-}
 void import(ToDo &toDo){
-  bool errorName=false;
+
   bool endProject=false;
-  string ProjectName,Description,ListName,taskname,isDone,time,date,line;
+
+  string Description="";
+  string ProjectName,ListName,taskname,isDone,time,date,line;
   string FileName=getFileName();
   Project project;
+  List list;
   ifstream file(FileName);//lectura
   if(file.is_open()){
-    while(getline(file,line)){//leemos linea a linea
-      errorName=false;
+    while(getline(file,line)){//leemos hasta terminar fichero
       endProject=false;
+
       //inicio proyecto
       if(line=="<"){
 
         getline(file,line);
         if(PrimerCaracter(line)=='#'){
           ProjectName=cutString(line);
-          if(!SearchProjectName(ProjectName,toDo)){
-            errorName=true;
-          }
-        }
-        getline(file,line);
-        if(!errorName && PrimerCaracter(line)=='*'){
-          Description=cutString(line);
-          getline(file,line);
-        }
-        if(!errorName){
-          project.name=ProjectName;
-          project.description=Description;
+          if(SearchProjectName(ProjectName,toDo)){
 
-          createProject(project,toDo);
-        }
-        if(!errorName && PrimerCaracter(line)=='@'){
-          ListName=cutString(line);
-          while(!endProject){
-            while(getline(file,line)){//leemos tareas
-              if(PrimerCaracter(line)=='@'){
-                break;
-              }else if(PrimerCaracter(line)=='>'){
-                endProject=true;
-                break;
-              }else{
-                if(canCreateTask(line)==1){
-                 createTaskFile(line);
-                }else if(canCreateTask(line)==0){
-                  error(ERR_DATE);
-                }else if(canCreateTask(line)==2){
-                  error(ERR_TIME);
+            getline(file,line);
+            if(PrimerCaracter(line)=='*'){//leemos description
+              Description=cutString(line);
+              getline(file,line);
+            }
+              project.name=ProjectName;
+              project.description=Description;
+            while(!endProject){
+                if(PrimerCaracter(line)=='@'){//leemos listas
+                  ListName=cutString(line);
+                  list.name=ListName;
+                  list.tasks.clear();
+                  while(getline(file,line)){//leemos tareas
+                    if(PrimerCaracter(line)=='@'){
+                        project.lists.push_back(list);
+                        break;
+                    }else if(PrimerCaracter(line)=='>'){
+                      endProject=true;
+                      project.lists.push_back(list);
+                      break;
+                    }else{
+                      Task task=CreateTaskFile(line);
+                      if(task.deadline.day>0){
+                       //la pone en la lista
+                       list.tasks.push_back(task);
+                     }
+                    }
+                  }
+                }else{
+                  endProject=true;
+                  break;
                 }
-
               }
+              project.id=toDo.nextId;
+              toDo.nextId++;
+              toDo.projects.push_back(project);
+              project.lists.clear();
+              Description="";
+
+          }else{
+              error(ERR_PROJECT_NAME);
             }
           }
+        }
 
-        }
-        if(errorName){
-          error(ERR_PROJECT_NAME);
-        }
-      }
 
       }
-
     file.close();
   }else{
     file.close();
@@ -799,7 +807,7 @@ int main(int argc,char *argv[]){
   toDo.nextId=1;
 
   char option;
-
+  cin.clear();
   do{
     showMainMenu();
     cin>>option;
