@@ -953,9 +953,58 @@ void load(ToDo &toDo){
 
 
 
+void save(ToDo &toDo){
+  BinToDo toDoBin;
+  BinProject projectBin;
+  BinList ListBin;
+  BinTask TaskBin;
+  string FileName=getFileName();
+  ofstream file(FileName, ios::out | ios::binary);
+  if(file.is_open()){
+    file.clear();
 
-/*save(){}
-summary(){}*/
+    strncpy(toDoBin.name,toDo.name.c_str(),KMAXNAME);
+    toDoBin.name[KMAXNAME-1]='\0';
+    toDoBin.numProjects=toDo.projects.size();
+    file.write((const char*) &toDoBin , sizeof(toDoBin));
+    for(unsigned i=0;i<toDo.projects.size();i++){
+
+      strncpy(projectBin.name,toDo.projects[i].name.c_str(),KMAXNAME);
+      projectBin.name[KMAXNAME-1]='\0';
+
+      strncpy(projectBin.description,toDo.projects[i].description.c_str(),KMAXDESC);
+      projectBin.description[KMAXDESC-1]='\0';
+      projectBin.numLists=toDo.projects[i].lists.size();
+
+      file.write((const char*) &projectBin , sizeof(projectBin));
+
+      for(unsigned j=0;j<toDo.projects[i].lists.size();j++){
+          strncpy(ListBin.name,toDo.projects[i].lists[j].name.c_str(),KMAXNAME);
+          ListBin.name[KMAXNAME-1]='\0';
+
+          ListBin.numTasks=toDo.projects[i].lists[j].tasks.size();
+          file.write((const char*) &ListBin , sizeof(ListBin));
+
+          for(unsigned z=0;z<toDo.projects[i].lists[j].tasks.size();z++){
+            strncpy(TaskBin.name,toDo.projects[i].lists[j].tasks[z].name.c_str(),KMAXNAME);
+
+            TaskBin.name[KMAXNAME-1]='\0';
+            TaskBin.deadline=toDo.projects[i].lists[j].tasks[z].deadline;
+            TaskBin.isDone=toDo.projects[i].lists[j].tasks[z].isDone;
+            TaskBin.time=toDo.projects[i].lists[j].tasks[z].time;
+            file.write((const char*) &TaskBin , sizeof(TaskBin));
+          }
+
+      }
+
+     }
+    file.close();
+  }else{
+    file.close();
+    error(ERR_FILE);
+  }
+}
+/*summary(){}*/
 int main(int argc,char *argv[]){
   //parsing arguments
   //for(int i=1;i<argc;i++){
@@ -989,9 +1038,9 @@ int main(int argc,char *argv[]){
                 break;
       case '6': load(toDo);
                 break;
-      /* case '7': save();
+       case '7': save(toDo);
                 break;
-      case '8': summary();
+      /*case '8': summary(toDO);
                 break;*/
       case 'q': break;
       default: error(ERR_OPTION);
