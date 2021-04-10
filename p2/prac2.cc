@@ -121,7 +121,8 @@ enum Cad{
   TOTAL_0,
   PROJ_ID,
   FILE_NAME,
-  CONFIRM
+  CONFIRM,
+  SAVE
 };
 //function that have the couts, like error
 void show(Cad a){
@@ -156,6 +157,9 @@ void show(Cad a){
       break;
     case CONFIRM:
       cout<<"Confirm [Y/N]?: ";
+      break;
+    case SAVE:
+      cout<<"Save all projects [Y/N]?: ";
       break;
   }
 
@@ -644,7 +648,6 @@ void deleteProject(ToDo &toDo){
 
 string getFileName(){
   string FileName;
-
   show(FILE_NAME);
   //  cin.ignore();
   getline(cin,FileName);
@@ -780,6 +783,107 @@ void import(ToDo &toDo){
 
 
 }
+bool checkRespuesta(int option){
+  string respuesta;
+  if(option==1){
+      while(respuesta!="y" && respuesta!="Y" && respuesta!= "n" && respuesta != "N"){
+        show(SAVE);
+        getline(cin,respuesta);
+        if(respuesta=="Y" || respuesta=="y"){
+          return true;
+        }else if(respuesta=="N" || respuesta == "n"){
+          break;
+        }
+      }
+
+  }
+return false;
+}
+void WriteProject(ToDo &toDo,string &FileName,int &pos){
+  Project project;
+
+    ofstream file(FileName);//escritura
+    if(file.is_open()){
+
+        file.clear();
+        if(pos==-1){
+          for(unsigned int i=0;i<toDo.projects.size();i++){
+            project=toDo.projects[i];
+            file<<"<"<<endl;
+            file<<"#"<<project.name<<endl;
+            if(project.description!=""){
+              file<<"*"<<project.description<<endl;
+            }
+            for(unsigned i=0;i<project.lists.size();i++){
+                file<<"@"<<project.lists[i].name<<endl;
+                for(unsigned j=0;j<project.lists[i].tasks.size();j++){
+                  file<<project.lists[i].tasks[j].name<<"|";
+                  file<<project.lists[i].tasks[j].deadline.day<<"/";
+                  file<<project.lists[i].tasks[j].deadline.month<<"/";
+                  file<<project.lists[i].tasks[j].deadline.year<<"|";
+                  if(project.lists[i].tasks[j].isDone){
+                    file<<"T|"<<project.lists[i].tasks[j].time<<endl;
+                  }else{
+                    file<<"F|"<<project.lists[i].tasks[j].time<<endl;
+                  }
+                }
+            }
+
+            file<<">"<<endl;
+          }
+        }else{
+          project=toDo.projects[pos];
+          file<<"<"<<endl;
+          file<<"#"<<project.name<<endl;
+          if(project.description!=""){
+            file<<"*"<<project.description<<endl;
+          }
+          for(unsigned i=0;i<project.lists.size();i++){
+              file<<"@"<<project.lists[i].name<<endl;
+              for(unsigned j=0;j<project.lists[i].tasks.size();j++){
+                file<<project.lists[i].tasks[j].name<<"|";
+                file<<project.lists[i].tasks[j].deadline.day<<"/";
+                file<<project.lists[i].tasks[j].deadline.month<<"/";
+                file<<project.lists[i].tasks[j].deadline.year<<"|";
+                if(project.lists[i].tasks[j].isDone){
+                  file<<"T|"<<project.lists[i].tasks[j].time<<endl;
+                }else{
+                  file<<"F|"<<project.lists[i].tasks[j].time<<endl;
+                }
+              }
+          }
+
+          file<<">"<<endl;
+        }
+
+
+        file.close();
+
+    }else{
+      file.close();
+      error(ERR_FILE);
+    }
+}
+void exportFile(ToDo &toDo){
+  int option=1;
+  int pos=-1;
+  bool respuesta=checkRespuesta(option);
+  if(respuesta==true){//ha contestado Y/y
+        string FileName=getFileName();
+        WriteProject(toDo,FileName,pos);
+        toDo.projects.clear();
+    //se guarda todo
+  }else if(respuesta==false){//ha contestado N/n
+
+    //se guarda un proyecto
+    int pos=SearchProjectID(toDo);
+    if(pos!=-1){
+        string FileName=getFileName();
+      WriteProject(toDo,FileName,pos);
+      toDo.projects.erase(toDo.projects.begin()+pos);
+    }
+  }
+}
 /*
 do{
   show(CONFIRM);
@@ -792,8 +896,7 @@ do{
   }
 }while (!exit);
 
-*/
-/*iexport(){}
+iexport(){}
 load(){}
 save(){}
 summary(){}*/
@@ -826,9 +929,8 @@ int main(int argc,char *argv[]){
                 break;
       case '4': import(toDo);
                 break;
-    /*  case '5': export();
-                break;
-      case '6': load();
+      case '5': exportFile(toDo);
+    /* case '6': load();
                 break;
       case '7': save();
                 break;
