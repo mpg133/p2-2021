@@ -785,18 +785,22 @@ void import(ToDo &toDo){
 }
 bool checkRespuesta(int option){
   string respuesta;
-  if(option==1){
-      while(respuesta!="y" && respuesta!="Y" && respuesta!= "n" && respuesta != "N"){
-        show(SAVE);
+
+      do{
+        if(option==1){
+            show(SAVE);
+        }else{
+          show(CONFIRM);
+        }
         getline(cin,respuesta);
         if(respuesta=="Y" || respuesta=="y"){
           return true;
         }else if(respuesta=="N" || respuesta == "n"){
           break;
         }
-      }
+      } while(respuesta!="y" && respuesta!="Y" && respuesta!= "n" && respuesta != "N");
 
-  }
+
 return false;
 }
 void WriteProject(ToDo &toDo,string &FileName,int &pos){
@@ -807,6 +811,7 @@ void WriteProject(ToDo &toDo,string &FileName,int &pos){
 
         file.clear();
         if(pos==-1){
+
           for(unsigned int i=0;i<toDo.projects.size();i++){
             project=toDo.projects[i];
             file<<"<"<<endl;
@@ -814,17 +819,17 @@ void WriteProject(ToDo &toDo,string &FileName,int &pos){
             if(project.description!=""){
               file<<"*"<<project.description<<endl;
             }
-            for(unsigned i=0;i<project.lists.size();i++){
-                file<<"@"<<project.lists[i].name<<endl;
-                for(unsigned j=0;j<project.lists[i].tasks.size();j++){
-                  file<<project.lists[i].tasks[j].name<<"|";
-                  file<<project.lists[i].tasks[j].deadline.day<<"/";
-                  file<<project.lists[i].tasks[j].deadline.month<<"/";
-                  file<<project.lists[i].tasks[j].deadline.year<<"|";
-                  if(project.lists[i].tasks[j].isDone){
-                    file<<"T|"<<project.lists[i].tasks[j].time<<endl;
+            for(unsigned j=0;j<project.lists.size();j++){
+                file<<"@"<<project.lists[j].name<<endl;
+                for(unsigned z=0;z<project.lists[j].tasks.size();z++){
+                  file<<project.lists[j].tasks[z].name<<"|";
+                  file<<project.lists[j].tasks[z].deadline.day<<"/";
+                  file<<project.lists[j].tasks[z].deadline.month<<"/";
+                  file<<project.lists[j].tasks[z].deadline.year<<"|";
+                  if(project.lists[j].tasks[z].isDone){
+                    file<<"T|"<<project.lists[j].tasks[z].time<<endl;
                   }else{
-                    file<<"F|"<<project.lists[i].tasks[j].time<<endl;
+                    file<<"F|"<<project.lists[j].tasks[z].time<<endl;
                   }
                 }
             }
@@ -832,8 +837,9 @@ void WriteProject(ToDo &toDo,string &FileName,int &pos){
             file<<">"<<endl;
           }
         }else{
-          project=toDo.projects[pos];
+
           file<<"<"<<endl;
+          project=toDo.projects[pos];
           file<<"#"<<project.name<<endl;
           if(project.description!=""){
             file<<"*"<<project.description<<endl;
@@ -869,36 +875,86 @@ void exportFile(ToDo &toDo){
   int pos=-1;
   bool respuesta=checkRespuesta(option);
   if(respuesta==true){//ha contestado Y/y
+        cin.clear();
         string FileName=getFileName();
         WriteProject(toDo,FileName,pos);
         toDo.projects.clear();
     //se guarda todo
-  }else if(respuesta==false){//ha contestado N/n
-
+  }else{//ha contestado N/n
     //se guarda un proyecto
     int pos=SearchProjectID(toDo);
     if(pos!=-1){
+      cout<<"entra?"<<endl;
         string FileName=getFileName();
       WriteProject(toDo,FileName,pos);
       toDo.projects.erase(toDo.projects.begin()+pos);
     }
   }
 }
-/*
-do{
-  show(CONFIRM);
-  cin>>confirm;
-  cin.get();
-  if(confirm=='Y' || confirm == 'y'){
-    return 2;
-  }else if(confirm=='N' || confirm=='n'){
-    return 3;
-  }
-}while (!exit);
 
-iexport(){}
-load(){}
-save(){}
+void load(ToDo &toDo){
+    BinToDo bintoDo;
+    BinProject binproject;
+    BinTask bintask;
+    BinList binlist;
+    Project project;
+    List list;
+    Task task;
+    string FileName=getFileName();
+    int option=2;
+    ifstream file(FileName, ios::in | ios::binary);
+    if(file.is_open()){
+      bool respuesta=checkRespuesta(option);
+      if(respuesta){// Y/y
+        toDo.projects.clear();
+        toDo.nextId=1;
+        //lectura registro BinToDo
+        file.read( (char *) &bintoDo , sizeof(BinToDo));
+        toDo.name=bintoDo.name;
+        for(unsigned i=0;i<bintoDo.numProjects;i++){
+
+
+          file.read((char *) &binproject ,sizeof(BinProject));
+          project.name=binproject.name;
+          project.description=binproject.description;
+          project.lists.clear();
+          for(unsigned int j=0;j<binproject.numLists;j++){
+              file.read((char *) &binlist,sizeof(BinList));
+                list.name=binlist.name;
+                list.tasks.clear();
+              for(unsigned z=0;z<binlist.numTasks;z++){
+                file.read((char *) &bintask,sizeof(BinTask));
+                  task.name=bintask.name;
+                  task.deadline=bintask.deadline;
+                  task.isDone=bintask.isDone;
+                  task.time=bintask.time;
+                  list.tasks.push_back(task);
+              }
+              project.lists.push_back(list);
+          }
+          project.id=toDo.nextId;
+          toDo.projects.push_back(project);
+          toDo.nextId++;
+
+
+
+        }
+
+      }
+      file.close();
+    }else{
+      file.close();
+      error(ERR_FILE);
+    }
+
+
+}
+
+
+
+
+
+/*save(){}
 summary(){}*/
 int main(int argc,char *argv[]){
   //parsing arguments
@@ -930,9 +986,10 @@ int main(int argc,char *argv[]){
       case '4': import(toDo);
                 break;
       case '5': exportFile(toDo);
-    /* case '6': load();
                 break;
-      case '7': save();
+      case '6': load(toDo);
+                break;
+      /* case '7': save();
                 break;
       case '8': summary();
                 break;*/
