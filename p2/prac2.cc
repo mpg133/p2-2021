@@ -705,13 +705,12 @@ Task CreateTaskFile(string &line){
       return ret;
 }
 
-void import(ToDo &toDo){
+void import(ToDo &toDo,string &FileName){
 
   bool endProject=false;
 
   string Description="";
   string ProjectName,ListName,taskname,isDone,time,date,line;
-  string FileName=getFileName();
   Project project;
   List list;
   ifstream file(FileName);//lectura
@@ -892,7 +891,7 @@ void exportFile(ToDo &toDo){
   }
 }
 
-void load(ToDo &toDo){
+void load(ToDo &toDo,string &FileName, bool &respuesta){
     BinToDo bintoDo;
     BinProject binproject;
     BinTask bintask;
@@ -900,11 +899,9 @@ void load(ToDo &toDo){
     Project project;
     List list;
     Task task;
-    string FileName=getFileName();
-    int option=2;
     ifstream file(FileName, ios::in | ios::binary);
     if(file.is_open()){
-      bool respuesta=checkRespuesta(option);
+
       if(respuesta){// Y/y
         toDo.projects.clear();
         toDo.nextId=1;
@@ -1004,16 +1001,93 @@ void save(ToDo &toDo){
     error(ERR_FILE);
   }
 }
-/*summary(){}*/
-int main(int argc,char *argv[]){
-  //parsing arguments
-  //for(int i=1;i<argc;i++){
-    //string arg=argv[i];
 
+
+void summary(ToDo &toDo){
+//resumen de los proyectos existentes
+int TotalTask=0;
+int done=0;
+
+  for(unsigned i=0;i<toDo.projects.size();i++){
+
+    cout<<"("<<toDo.projects[i].id<<") "<<toDo.projects[i].name<<" [";
+
+    for(unsigned j=0;j<toDo.projects[i].lists.size();j++){
+      TotalTask=0;
+      done=0;
+      TotalTask=TotalTask+toDo.projects[i].lists[j].tasks.size();
+      for(unsigned z=0;z<toDo.projects[i].lists[j].tasks.size();z++){
+        if(toDo.projects[i].lists[j].tasks[z].isDone){
+          done++;
+        }
+      }
+    }
+
+
+    cout<<done<<"/"<<TotalTask<<"]"<<endl;
+  }
+
+
+
+}
+int main(int argc,char *argv[]){
+  bool respuesta=true;
+  int option2=2;
   ToDo toDo;
+  string file_name;
+  string Importfile_name,Loadfile_name;
   toDo.name="My ToDo list";
   toDo.nextId=1;
+  //variables que controlan si un argumento ha salido más de una vez
+  int Numimport=0;
+  int  Numload=0;
+  //parsing arguments
+  for(int i=1;i<argc;i++){
+    string arg=argv[i];
 
+    if(arg=="-i"){
+
+      //importar proyectos -i fihero
+      i++;
+      if(i>=argc){
+        error(ERR_ARGS);
+        exit(EXIT_FAILURE);
+      }else{
+
+        Numimport++;
+        Importfile_name= argv[i];
+      }
+
+    }else if(arg=="-l"){
+      i++;
+      if(i>=argc){
+        error(ERR_ARGS);
+        exit(EXIT_FAILURE);
+      }else{
+        Numload++;
+        Loadfile_name= argv[i];
+      }
+
+    }else{
+
+      error(ERR_ARGS);
+      exit(EXIT_FAILURE);
+    }
+  }
+  if(Numload <= 1 && Numimport <= 1){
+    if(Numload==1 && Numimport==1 ){
+      load(toDo,Loadfile_name,respuesta);
+      import(toDo,Importfile_name);
+    }else if(Numload==1 && Numimport==0){
+      load(toDo,Loadfile_name,respuesta);
+    }else if(Numimport==1 && Numload==0){
+      import(toDo,Importfile_name);
+    }
+  }else{
+
+    error(ERR_ARGS);
+    exit(EXIT_FAILURE);
+  }
   char option;
   cin.clear();
   do{
@@ -1032,16 +1106,20 @@ int main(int argc,char *argv[]){
                 break;
       case '3': deleteProject(toDo);
                 break;
-      case '4': import(toDo);
+      case '4': file_name=getFileName();
+                import(toDo,file_name);
                 break;
       case '5': exportFile(toDo);
                 break;
-      case '6': load(toDo);
+
+      case '6': file_name=getFileName();
+                respuesta=checkRespuesta(option2);
+                load(toDo,file_name,respuesta);
                 break;
        case '7': save(toDo);
                 break;
-      /*case '8': summary(toDO);
-                break;*/
+      case '8': summary(toDo);
+                break;
       case 'q': break;
       default: error(ERR_OPTION);
     }
