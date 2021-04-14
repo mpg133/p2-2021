@@ -62,10 +62,12 @@ char name[KMAXNAME];
 char description[KMAXDESC];
 unsigned numLists;
 };
+
 struct BinToDo{
 char name[KMAXNAME];
 unsigned numProjects;
 };
+
 enum Error{
   ERR_OPTION,
   ERR_EMPTY,
@@ -78,6 +80,7 @@ enum Error{
   ERR_FILE,
   ERR_ARGS
 };
+
 void error(Error e){
   switch(e){
     case ERR_OPTION:
@@ -111,6 +114,7 @@ void error(Error e){
         cout << "ERROR: wrong arguments" << endl;
   }
 }
+
 enum Cad{
   PROJ_NAME,
   LIST_NAME,
@@ -549,7 +553,7 @@ void report(Project &toDoList){
 // ----------------------------------------------------------------------------------------------------------------------
 // -----------------------------------FUNCIONES PRACTICA 2---------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------
-//function that ask for id and return the project if project exist
+//function that ask for id and return the project position if project exist
 int SearchProjectID(ToDo &toDo){
   int id;
   show(PROJ_ID);
@@ -560,19 +564,19 @@ int SearchProjectID(ToDo &toDo){
       return i;
     }
   }
-  return -1;
+  return -1;//return -1 when project no exist
 }
 
 
-
+//menu prac1
 void menu(Project &toDoList){
-  char optionProject;
+  char option;
 
   do{
     showProjectMenu();
-    cin>>optionProject;
+    cin>>option;
     cin.get();
-    switch(optionProject){
+    switch(option){
       case '1': editProject(toDoList);
                 break;
       case '2': addList(toDoList);
@@ -590,42 +594,42 @@ void menu(Project &toDoList){
       case 'b': break;
       default: error(ERR_OPTION);
     }
-  }while(optionProject!='b');
+  }while(option!='b');
 }
+//case 1 mainMenu
 void menuProject(ToDo &toDo){
 
-  int pos=SearchProjectID(toDo);
+  int projectPos=SearchProjectID(toDo);
 
-  if(pos!=-1){//si existe proyecto
-    menu(toDo.projects[pos]);
+  if(projectPos!=-1){//if project exists
+    menu(toDo.projects[projectPos]);
   }else{
     error(ERR_ID);
   }
-
-
 }
-//function that return false if project has that name
-bool SearchProjectName(string &ProjectName,ToDo &toDo){
+//function that return false if project have ProjectName
+bool SearchProjectName(string &projectName,ToDo &toDo){
 
   for(unsigned int i=0;i<toDo.projects.size();i++){
-    if(toDo.projects[i].name==ProjectName){
+    if(toDo.projects[i].name==projectName){
       return false;
     }
   }
   return true;
 }
+//case 2 mainMenu
 bool addProject(ToDo &toDo){
-  Project ret;
+  Project newProject;
   cin.clear();//clean buffer
   string newName=AskName("",true);
   string newDescription="";
   if(SearchProjectName(newName,toDo)){
     show(ENTER_DESC);
     getline(cin,newDescription);// new Project Description
-    ret.name=newName;
-    ret.description=newDescription;
-    ret.id=toDo.nextId;
-    toDo.projects.push_back(ret);
+    newProject.name=newName;
+    newProject.description=newDescription;
+    newProject.id=toDo.nextId;
+    toDo.projects.push_back(newProject);
 
     return true;
   }else{
@@ -634,12 +638,12 @@ bool addProject(ToDo &toDo){
   }
 
 }
-
+//case 3 mainMenu
 void deleteProject(ToDo &toDo){
-  int pos=SearchProjectID(toDo);
-  if(pos!=-1){//si existe proyecto
+  int projectPos=SearchProjectID(toDo);
+  if(projectPos!=-1){//si existe proyecto
     //borrar proyecto del vector projects
-      toDo.projects.erase(toDo.projects.begin()+pos);
+      toDo.projects.erase(toDo.projects.begin()+projectPos);
   }else{
     error(ERR_ID);
   }
@@ -647,39 +651,40 @@ void deleteProject(ToDo &toDo){
 //function that ask for project name
 
 string getFileName(){
-  string FileName;
+  string fileName;
   show(FILE_NAME);
   //  cin.ignore();
-  getline(cin,FileName);
-  return FileName;
+  getline(cin,fileName);
+  return fileName;
 }
-//funcion que quita el primer caracter del string
-string cutString(string &s){
-if(s.length()>0){
-  char charString [s.length()+1];
-    for(unsigned i=0;i<s.length();i++){
-      if((i)==s.length()){
+//function that delete the first character of string
+string cutString(string &fullString){
+if(fullString.length()>0){
+  char charString [fullString.length()+1];
+    for(unsigned i=0;i<fullString.length();i++){
+      if(i==fullString.length()){
         charString[i]='\0';
       }else{
-        charString[i]=s[i+1];
+        charString[i]=fullString[i+1];
       }
 
     }
-    s=charString;
+    fullString=charString;
 }
 
-  return s;
+  return fullString;
 }
-//funcion que devuelve el primer caracter del string
+//funtion that return the first character of string
 char PrimerCaracter(string &s){
       return s[0];
 }
-//function that return 1 if date and time are correct
-//return 0 if date is wrong and 2 if time is wrong
+//Function that create a Task from file:
+//task.deadline.day=-1 if ERR_DATE
+//task.dead+.day=-2 if ERR_TIME
 Task CreateTaskFile(string &line){
       char delimiter ='|';
       vector <string> taskDivided{};
-      Task ret;
+      Task newTask;
       stringstream sstream(line);
       string StringToVector; //the string that we push to vector
       //read until delimeter
@@ -689,126 +694,122 @@ Task CreateTaskFile(string &line){
       vector <string> deadline=getDeadline(taskDivided[1]);//function that convert the deadline
       if(!CheckDate(stoi(deadline[0]),stoi(deadline[1]),stoi(deadline[2]))){
         error(ERR_DATE);
-        ret.deadline.day=-1;
+        newTask.deadline.day=-1;
 
       }else if(0>stoi(taskDivided[3]) || stoi(taskDivided[3])>181){
         error(ERR_TIME);
-        ret.deadline.day=-2;
+        newTask.deadline.day=-2;
       }else{
-        ret=CreateTask(taskDivided[0],stoi(deadline[0]),stoi(deadline[1]),stoi(deadline[2]),stoi(taskDivided[3]));
+        newTask=CreateTask(taskDivided[0],stoi(deadline[0]),stoi(deadline[1]),stoi(deadline[2]),stoi(taskDivided[3]));
         if(taskDivided[2]=="F"){
-          ret.isDone=false;
+          newTask.isDone=false;
         }else{
-          ret.isDone=true;
+          newTask.isDone=true;
         }
       }
-      return ret;
+      return newTask;
 }
-
+//case 4 of mainMenu
 void import(ToDo &toDo,string &FileName){
-
-  bool endProject=false;
-
+  bool endProject=false;//boolean that control the end of project
   string Description="";
   string ProjectName,ListName,taskname,isDone,time,date,line;
-  Project project;
-  List list;
-  ifstream file(FileName);//lectura
-  if(file.is_open()){
-    while(getline(file,line)){//leemos hasta terminar fichero
-      endProject=false;
+  Project newProject;
+  List newList;
 
-      //inicio proyecto
+  ifstream file(FileName);//open file in read mode
+  if(file.is_open()){
+    while(getline(file,line)){//read line in loop
+      endProject=false;
+      //start of project
       if(line=="<"){
 
         getline(file,line);
         if(PrimerCaracter(line)=='#'){
-          ProjectName=cutString(line);
+
+          ProjectName=cutString(line);//read project name
           if(SearchProjectName(ProjectName,toDo)){
 
             getline(file,line);
-            if(PrimerCaracter(line)=='*'){//leemos description
-              Description=cutString(line);
+            if(PrimerCaracter(line)=='*'){
+              Description=cutString(line);//read description if exist
               getline(file,line);
             }
-              project.name=ProjectName;
-              project.description=Description;
+            newProject.name=ProjectName;
+            newProject.description=Description;
             while(!endProject){
-                if(PrimerCaracter(line)=='@'){//leemos listas
+                if(PrimerCaracter(line)=='@'){//read lists
                   ListName=cutString(line);
-                  list.name=ListName;
-                  list.tasks.clear();
-                  while(getline(file,line)){//leemos tareas
-                    if(PrimerCaracter(line)=='@'){
-                        project.lists.push_back(list);
-                        break;
-                    }else if(PrimerCaracter(line)=='>'){
+                  newList.name=ListName;
+                  newList.tasks.clear();
+                  while(getline(file,line)){//read task
+                    if(PrimerCaracter(line)=='@'){//if read another list we exit loop
+                      newProject.lists.push_back(newList);
+                      break;
+                    }else if(PrimerCaracter(line)=='>'){//if read endOfproject exit loop and endProject= true
                       endProject=true;
-                      project.lists.push_back(list);
+                      newProject.lists.push_back(newList);
                       break;
                     }else{
-                      Task task=CreateTaskFile(line);
-                      if(task.deadline.day>0){
-                       //la pone en la lista
-                       list.tasks.push_back(task);
+                      Task newTask=CreateTaskFile(line);//create a Task with CreateTaskFile
+                      if(newTask.deadline.day>0){//if we don't have errors we save it
+                        newList.tasks.push_back(newTask);
                      }
-                    }
-                  }
-                }else{
-                  endProject=true;
-                  break;
+                   }
                 }
+              }else{//finish lists
+                endProject=true;
+                break;
               }
-              project.id=toDo.nextId;
-              toDo.nextId++;
-              toDo.projects.push_back(project);
-              project.lists.clear();
-              Description="";
-
-          }else{
-              error(ERR_PROJECT_NAME);
-            }
           }
+          newProject.id=toDo.nextId;
+          toDo.nextId++;
+          toDo.projects.push_back(newProject);
+          newProject.lists.clear();
+          Description="";
+
+        }else{
+          error(ERR_PROJECT_NAME);
         }
-
-
       }
-    file.close();
+    }
+  }
+  file.close();
   }else{
     file.close();
     error(ERR_FILE);
   }
-
-
-
 }
+//fuction that looks if user enter y/Y or n/N
 bool checkRespuesta(int option){
   string respuesta;
 
-      do{
-        if(option==1){
-            show(SAVE);
-        }else{
-          show(CONFIRM);
-        }
-        getline(cin,respuesta);
-        if(respuesta=="Y" || respuesta=="y"){
-          return true;
-        }else if(respuesta=="N" || respuesta == "n"){
-          break;
-        }
-      } while(respuesta!="y" && respuesta!="Y" && respuesta!= "n" && respuesta != "N");
+  do{
+    if(option==1){
+        show(SAVE);
+    }else{
+      show(CONFIRM);
+    }
+    getline(cin,respuesta);
+    if(respuesta=="Y" || respuesta=="y"){
+      return true;
+    }else if(respuesta=="N" || respuesta == "n"){
+      break;
+    }
+  } while(respuesta!="y" && respuesta!="Y" && respuesta!= "n" && respuesta != "N");
 
 
-return false;
+  return false;
 }
-void WriteProject(ToDo &toDo,string &FileName,int &pos){
+//fucntion that write one project or all projects
+void WriteProject(ToDo &toDo,string &fileName,int &pos){
   Project project;
 
-    ofstream file(FileName);//escritura
+    ofstream file(fileName);//open file in write mode
     if(file.is_open()){
 
         file.clear();
+        //export all projects
         if(pos==-1){
 
           for(unsigned int i=0;i<toDo.projects.size();i++){
@@ -835,6 +836,7 @@ void WriteProject(ToDo &toDo,string &FileName,int &pos){
 
             file<<">"<<endl;
           }
+        //export one project
         }else{
 
           file<<"<"<<endl;
@@ -869,36 +871,36 @@ void WriteProject(ToDo &toDo,string &FileName,int &pos){
       error(ERR_FILE);
     }
 }
+//case 5 mainMenu
 void exportFile(ToDo &toDo){
   int option=1;
   int pos=-1;
   bool respuesta=checkRespuesta(option);
   if(respuesta==true){//ha contestado Y/y
         cin.clear();
-        string FileName=getFileName();
-        WriteProject(toDo,FileName,pos);
+        string fileName=getFileName();
+        WriteProject(toDo,fileName,pos);
         toDo.projects.clear();
     //se guarda todo
   }else{//ha contestado N/n
     //se guarda un proyecto
-    int pos=SearchProjectID(toDo);
+    pos=SearchProjectID(toDo);
     if(pos!=-1){
-      cout<<"entra?"<<endl;
-        string FileName=getFileName();
-      WriteProject(toDo,FileName,pos);
+      string fileName=getFileName();
+      WriteProject(toDo,fileName,pos);
       toDo.projects.erase(toDo.projects.begin()+pos);
     }
   }
 }
-
+//case 6 mainMenu
 void load(ToDo &toDo,string &FileName, bool &respuesta){
-    BinToDo bintoDo;
-    BinProject binproject;
-    BinTask bintask;
-    BinList binlist;
-    Project project;
-    List list;
-    Task task;
+    BinToDo binToDo;
+    BinProject binProject;
+    BinTask binTask;
+    BinList binList;
+    Project newProject;
+    List newList;
+    Task newTask;
     ifstream file(FileName, ios::in | ios::binary);
     if(file.is_open()){
 
@@ -906,35 +908,32 @@ void load(ToDo &toDo,string &FileName, bool &respuesta){
         toDo.projects.clear();
         toDo.nextId=1;
         //lectura registro BinToDo
-        file.read( (char *) &bintoDo , sizeof(BinToDo));
-        toDo.name=bintoDo.name;
-        for(unsigned i=0;i<bintoDo.numProjects;i++){
+        file.read( (char *) &binToDo , sizeof(BinToDo));
+        toDo.name=binToDo.name;
+        for(unsigned i=0;i<binToDo.numProjects;i++){
 
 
-          file.read((char *) &binproject ,sizeof(BinProject));
-          project.name=binproject.name;
-          project.description=binproject.description;
-          project.lists.clear();
-          for(unsigned int j=0;j<binproject.numLists;j++){
-              file.read((char *) &binlist,sizeof(BinList));
-                list.name=binlist.name;
-                list.tasks.clear();
-              for(unsigned z=0;z<binlist.numTasks;z++){
-                file.read((char *) &bintask,sizeof(BinTask));
-                  task.name=bintask.name;
-                  task.deadline=bintask.deadline;
-                  task.isDone=bintask.isDone;
-                  task.time=bintask.time;
-                  list.tasks.push_back(task);
+          file.read((char *) &binProject ,sizeof(BinProject));
+          newProject.name=binProject.name;
+          newProject.description=binProject.description;
+          newProject.lists.clear();
+          for(unsigned int j=0;j<binProject.numLists;j++){
+              file.read((char *) &binList,sizeof(BinList));
+                newList.name=binList.name;
+                newList.tasks.clear();
+              for(unsigned z=0;z<binList.numTasks;z++){
+                file.read((char *) &binTask,sizeof(BinTask));
+                  newTask.name=binTask.name;
+                  newTask.deadline=binTask.deadline;
+                  newTask.isDone=binTask.isDone;
+                  newTask.time=binTask.time;
+                  newList.tasks.push_back(newTask);
               }
-              project.lists.push_back(list);
+              newProject.lists.push_back(newList);
           }
-          project.id=toDo.nextId;
-          toDo.projects.push_back(project);
+          newProject.id=toDo.nextId;
+          toDo.projects.push_back(newProject);
           toDo.nextId++;
-
-
-
         }
 
       }
@@ -943,27 +942,23 @@ void load(ToDo &toDo,string &FileName, bool &respuesta){
       file.close();
       error(ERR_FILE);
     }
-
-
 }
-
-
-
-
+//case 7 mainMenu
 void save(ToDo &toDo){
   BinToDo toDoBin;
   BinProject projectBin;
   BinList ListBin;
   BinTask TaskBin;
-  string FileName=getFileName();
-  ofstream file(FileName, ios::out | ios::binary);
+  string fileName=getFileName();
+  ofstream file(fileName, ios::out | ios::binary);
   if(file.is_open()){
     file.clear();
-
+    //save toDoBin
     strncpy(toDoBin.name,toDo.name.c_str(),KMAXNAME);
     toDoBin.name[KMAXNAME-1]='\0';
     toDoBin.numProjects=toDo.projects.size();
     file.write((const char*) &toDoBin , sizeof(toDoBin));
+    //save BinProject
     for(unsigned i=0;i<toDo.projects.size();i++){
 
       strncpy(projectBin.name,toDo.projects[i].name.c_str(),KMAXNAME);
@@ -974,14 +969,14 @@ void save(ToDo &toDo){
       projectBin.numLists=toDo.projects[i].lists.size();
 
       file.write((const char*) &projectBin , sizeof(projectBin));
-
+      //save Lists
       for(unsigned j=0;j<toDo.projects[i].lists.size();j++){
           strncpy(ListBin.name,toDo.projects[i].lists[j].name.c_str(),KMAXNAME);
           ListBin.name[KMAXNAME-1]='\0';
 
           ListBin.numTasks=toDo.projects[i].lists[j].tasks.size();
           file.write((const char*) &ListBin , sizeof(ListBin));
-
+          //save Tasks
           for(unsigned z=0;z<toDo.projects[i].lists[j].tasks.size();z++){
             strncpy(TaskBin.name,toDo.projects[i].lists[j].tasks[z].name.c_str(),KMAXNAME);
 
@@ -1002,11 +997,11 @@ void save(ToDo &toDo){
   }
 }
 
-
+//case 8 mainMenu
 void summary(ToDo &toDo){
 //resumen de los proyectos existentes
 int TotalTask=0;
-int done=0;
+int doneTasks=0;
 
   for(unsigned i=0;i<toDo.projects.size();i++){
 
@@ -1014,17 +1009,17 @@ int done=0;
 
     for(unsigned j=0;j<toDo.projects[i].lists.size();j++){
       TotalTask=0;
-      done=0;
+      doneTasks=0;
       TotalTask=TotalTask+toDo.projects[i].lists[j].tasks.size();
       for(unsigned z=0;z<toDo.projects[i].lists[j].tasks.size();z++){
         if(toDo.projects[i].lists[j].tasks[z].isDone){
-          done++;
+          doneTasks++;
         }
       }
     }
 
 
-    cout<<done<<"/"<<TotalTask<<"]"<<endl;
+    cout<<doneTasks<<"/"<<TotalTask<<"]"<<endl;
   }
 
 
@@ -1116,7 +1111,7 @@ int main(int argc,char *argv[]){
                 respuesta=checkRespuesta(option2);
                 load(toDo,file_name,respuesta);
                 break;
-       case '7': save(toDo);
+      case '7': save(toDo);
                 break;
       case '8': summary(toDo);
                 break;
