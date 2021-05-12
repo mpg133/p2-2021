@@ -1,11 +1,11 @@
 #include <iostream>
 #include <String.h>
-
+using namespace std;
 #ifndef "_PROJECT_H_"
 #define "_PROJECT__H"
 
 class Project {
-	friend ostream& operator << (ostream&);
+	friend ostream& operator << (ostream&,const Project &project);
 protected:
 	int id;
 	string name;

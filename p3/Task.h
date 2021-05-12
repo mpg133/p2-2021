@@ -1,16 +1,24 @@
 #include <iostream>
-#include <String.h>
+#include <string.h>
+#include <vector>
+using namespace std;
 //#include "Date.h"
-#ifndef "_TASK_"
-#define "_TASK_"
-
+#ifndef __TASK__
+#define __TASK__
+struct Date {
+	int day;
+	int month;
+	int year;
+};
 class Task {
-	friend ostream& operator << (ostream&);
+	friend ostream& operator << (ostream & ,const Task &task);
 protected:
 	string name;
 	Date deadline;
 	bool isDone;
 	int time;
+	bool CheckDate(int day, int month, int year);
+	vector<string> getDeadline(string date);
 public:
 	Task(string name);
 	string getName() const;
