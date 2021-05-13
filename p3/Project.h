@@ -1,8 +1,9 @@
 #include <iostream>
-#include <String.h>
+#include <string.h>
+#include <vector>
 using namespace std;
-#ifndef "_PROJECT_H_"
-#define "_PROJECT__H"
+#ifndef _PROJECT_H_
+#define _PROJECT__H
 
 class Project {
 	friend ostream& operator << (ostream&,const Project &project);
@@ -10,7 +11,7 @@ protected:
 	int id;
 	string name;
 	string description;
-
+	vector<List> lists;
 public:
 	Project(string name,description= "");
 	int getId()const;

@@ -68,6 +68,9 @@ string Task::getName() const{
 Date Task::getDeadline() const{
     return deadline;
 }
+bool getIsDone() const{
+    return isDone;
+}
 int Task::getTime() const{
     return time;
 }
@@ -105,4 +108,19 @@ void Task::toogle(){
     }else{
         isDone=true;
     }
+}
+ostream& operator << (ostream &os,const Task &task){
+
+  os<<"[";
+  if(!isDone){
+    cout<<" ";
+  }
+  else{
+    cout<<"X";
+  }
+  os<<"] ("<<time<<") "
+      <<deadline.year<<"-"<<deadline.month<<"-"<<deadline.day
+      <<" : "<<name<<endl;
+
+return os;
 }
