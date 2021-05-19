@@ -1,10 +1,11 @@
+#ifndef __TASK__
+#define __TASK__
 #include <iostream>
 #include <string.h>
 #include <vector>
 using namespace std;
 //#include "Date.h"
-#ifndef __TASK__
-#define __TASK__
+
 struct Date {
 	int day;
 	int month;
@@ -28,7 +29,7 @@ public:
 	void setName(string name);
 	bool setDeadline(string deadline);
 	bool setTime(int time);
-	void toogle();
+	void toggle();
 	
 	
 };

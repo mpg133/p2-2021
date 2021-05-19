@@ -102,7 +102,7 @@ bool Task::setTime(int time2){
          return false;
      }
 }
-void Task::toogle(){
+void Task::toggle(){
     if(isDone){
         isDone=false;
     }else{

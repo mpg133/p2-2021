@@ -1,23 +1,32 @@
+
+#ifndef _PROJECT_H_
+#define _PROJECT__H
 #include <iostream>
 #include <string.h>
 #include <vector>
+#include "Util.h"
+#include "List.h"
+
 using namespace std;
-#ifndef _PROJECT_H_
-#define _PROJECT__H
+
 
 class Project {
 	friend ostream& operator << (ostream&,const Project &project);
 protected:
+	void showPriority();
+	int Oldest(List list);
+	void showMainMenu();
+	string AskName(string name, bool ask);
 	int id;
 	string name;
 	string description;
 	vector<List> lists;
 public:
-	Project(string name,description= "");
+	Project(string name,string description= "");
 	int getId()const;
 	string getName()const;
 	string getDescription() const;
-	int getPostList(string name) const;
+	int getPosList(string name) const;
 	bool setId(int id);
 	bool setName(string name = "");
 	void setDescription(string name = "");
@@ -26,7 +35,7 @@ public:
 	void deleteList(string name="");
 	void addTaskToList(string name = "");
 	void deleteTaskFromList(string name = "");
-	void toogleTaskFromList(string name = "");
+	void toggleTaskFromList(string name = "");
 	void menu();
 	string summary() const;
 
