@@ -16,10 +16,10 @@ void Project::showMainMenu(){
        << "5- Delete task" << endl
        << "6- Toggle task" << endl
        << "7- Report" << endl
-       << "q- Quit" << endl
+       << "b- Back to main menu" << endl
        << "Option: ";
 }
-int Project::Oldest(List list){
+int Project::Oldest(List list) const {
 
 int oldPos=0;// the position of the oldest
 
@@ -41,10 +41,11 @@ int oldPos=0;// the position of the oldest
 return oldPos;
 }
 
-void Project::showPriority(){
-  Task prioTask();
+void Project::showPriority() const {
+  //Task prioTask();
+  Task prioTask("prioTask");
   int oldPos=0;
-  List AuxList();
+  List AuxList("AuxList");
   for(unsigned i=0;i<lists.size();i++){
     if(lists[i].getNumTasks()>0){
       for(unsigned int j=0;j<lists[i].getNumTasks();j++){
@@ -69,7 +70,7 @@ string Project::AskName (string name2, bool askProject){
        cout<<"Enter list name: ";
     }
     getline(cin,name2);
-    if(name.empty()){
+    if(name2.empty()){
       Util::error(ERR_EMPTY);
     }
   }while(name2.empty());
@@ -309,14 +310,33 @@ void Project::menu(){
                 break;
       case '7': cout<<*this<<endl;
                 break;
-      case 'q': break;
+      case 'b': break;
       default: Util::error(ERR_OPTION);
     }
-  }while(option!='q');
+  }while(option!='b');
 
 }
 string Project::summary() const{
+    int TotalTask=0;
+    int doneTasks=0;
+   string ret;
+    for(unsigned i=0;i<lists.size();i++){
+      doneTasks+=lists[i].getNumDone();
+      TotalTask+=lists[i].getNumTasks();
+    }
+    ret="(";
+    ret+=getId();
+    ret+=") ";
+    ret+=getName();
+    ret+=" [";
+    ret+=doneTasks;
+    ret+="/";
+    ret+=TotalTask;
+    ret+="]";
+   
 
+
+    return ret;
 
 }
 ostream& operator << (ostream &os,const Project &project){
@@ -335,10 +355,14 @@ ostream& operator << (ostream &os,const Project &project){
 
     }
     
-    os<<"Total left: "<<numTasks - numDone<<" ("<<timeTotal - timeDone<<")"<<endl;
-    os<<"Total done: "<<numDone<<" ("<<timeDone<<")"<<endl;
-    os<<"Highest priority";
-    showPriority();
-    os<<endl;
+    os<<"Total left: "<<numTasks - numDone<<" ("<<timeTotal - timeDone<<" minutes)"<<endl;
+    os<<"Total done: "<<numDone<<" ("<<timeDone<<" minutes)"<<endl;
+    if(numTasks>0){
+        os<<"Highest priority";
+        project.showPriority();
+        os<<endl;
+    }
+    
+    
     return os;
 }    

@@ -107,7 +107,7 @@ bool List::toggleTask(string name2){
         for(unsigned i=0;i<sameName;i++){
             for(unsigned j=0;j<getNumTasks();j++){
                 if(tasks[j].getName()==name2){
-                    tasks[j].toogle();
+                    tasks[j].toggle();
                 }
             }
         }

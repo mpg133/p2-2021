@@ -1,16 +1,18 @@
 #ifndef _TODO_H_
-#define _TODO__H
+#define _TODO_H_
 #include <iostream>
 #include <vector>
 #include<string.h>
 #include "Project.h"
+#include "Util.h"
 using namespace std;
 
 
 class ToDo {
 	protected:
-		vector<Project> projects;
-		static int nextId = 1;
+		vector<Project*> projects ;	//vector<Project> *projects;
+	
+		static int nextId;
 		string name;
 	public:
 		ToDo(string name);

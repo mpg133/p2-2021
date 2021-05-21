@@ -68,7 +68,7 @@ string Task::getName() const{
 Date Task::getDeadline() const{
     return deadline;
 }
-bool getIsDone() const{
+bool Task::getIsDone() const{
     return isDone;
 }
 int Task::getTime() const{
@@ -112,15 +112,15 @@ void Task::toggle(){
 ostream& operator << (ostream &os,const Task &task){
 
   os<<"[";
-  if(!isDone){
+  if(!task.getIsDone()){
     cout<<" ";
   }
   else{
     cout<<"X";
   }
-  os<<"] ("<<time<<") "
-      <<deadline.year<<"-"<<deadline.month<<"-"<<deadline.day
-      <<" : "<<name<<endl;
+  os<<"] ("<<task.getTime()<<") "
+      <<task.getDeadline().year<<"-"<<task.getDeadline().month<<"-"<<task.getDeadline().day
+      <<" : "<<task.getName()<<endl;
 
 return os;
 }

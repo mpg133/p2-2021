@@ -1,5 +1,5 @@
 #ifndef _LIST_H_
-#define _LIST__H
+#define _LIST_H_
 #include <iostream>
 #include <string.h>
 #include <vector>

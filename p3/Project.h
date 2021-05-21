@@ -1,6 +1,6 @@
 
-#ifndef _PROJECT_H_
-#define _PROJECT__H
+#ifndef _PROJECT__H_
+#define _PROJECT__H_
 #include <iostream>
 #include <string.h>
 #include <vector>
@@ -13,8 +13,8 @@ using namespace std;
 class Project {
 	friend ostream& operator << (ostream&,const Project &project);
 protected:
-	void showPriority();
-	int Oldest(List list);
+	void showPriority() const;
+	int Oldest(List list) const;
 	void showMainMenu();
 	string AskName(string name, bool ask);
 	int id;
