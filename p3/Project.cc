@@ -324,18 +324,17 @@ string Project::summary() const{
       doneTasks+=lists[i].getNumDone();
       TotalTask+=lists[i].getNumTasks();
     }
-    ret="(";
-    ret+=getId();
-    ret+=") ";
-    ret+=getName();
-    ret+=" [";
-    ret+=doneTasks;
-    ret+="/";
-    ret+=TotalTask;
-    ret+="]";
-   
-
-
+    stringstream  ss;
+    ss<<getId();
+    stringstream ss2;
+    ss2<<doneTasks;
+    stringstream ss3;
+    ss3<<TotalTask;
+    string id=ss.str();
+    string done=ss2.str();
+    string total=ss3.str();
+    ret="("+id+") "+getName()+" ["+done+"/"+total+"]";
+ 
     return ret;
 
 }

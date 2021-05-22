@@ -92,6 +92,8 @@ void ToDo::projectMenu(int id){
     
     if(getPosProject(usuId)!=-1){
         projects[getPosProject(usuId)]->menu();
+    }else{
+        Util::error(ERR_ID);
     }
     
 }

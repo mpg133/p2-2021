@@ -75,7 +75,7 @@ int Task::getTime() const{
     return time;
 }
 void Task::setName(string name2){
-    name=name;
+    name=name2;
 }
 bool Task::setDeadline(string deadline2){
     //function that convert the deadline
@@ -112,13 +112,12 @@ void Task::toggle(){
 ostream& operator << (ostream &os,const Task &task){
 
   os<<"[";
-  if(!task.getIsDone()){
-    cout<<" ";
+ if(task.isDone){
+    os<<"X] (";
+  }else{
+    os<<" ] (";
   }
-  else{
-    cout<<"X";
-  }
-  os<<"] ("<<task.getTime()<<") "
+  os<<task.getTime()<<") "
       <<task.getDeadline().year<<"-"<<task.getDeadline().month<<"-"<<task.getDeadline().day
       <<" : "<<task.getName()<<endl;
 
