@@ -59,7 +59,7 @@ int idUsu;
     if(id!=0){
         idUsu=id;
     }else{
-        cout<<"Enter project id: "<<endl;
+        cout<<"Enter project id: ";
         cin>>idUsu;
     }
 

@@ -94,7 +94,7 @@ bool Task::setDeadline(string deadline2){
 }
 bool Task::setTime(int time2){
      if(0<time2 && time2<181){
-         time=time;
+         time=time2;
          return true;
      }else{
          //error

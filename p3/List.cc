@@ -7,10 +7,11 @@
 using namespace std;
 
 List::List(string name2){ //throw error(ERR_EMPTY){
-    if(!name2.empty()){
-        name=name2;
+    if(name2.empty()){
+ 	throw ERR_EMPTY;
+       
     }else{
-        throw ERR_EMPTY;
+        name=name2;
     }
 }
 string List::getName() const{
@@ -95,24 +96,23 @@ bool List::deleteTask(string name2){
 }
 bool List::toggleTask(string name2){
     unsigned sameName=0;
-    for(unsigned i=0;i<getNumTasks();i++){
-        if(tasks[i].getName()==name2){
+   
+    
+       
+    for(unsigned j=0;j<getNumTasks();j++){
+        if(tasks[j].getName()==name2){
             sameName++;
+            tasks[j].toggle();
         }
     }
+        
+
     if(sameName==0){
         Util::error(ERR_TASK_NAME);
         return false;
-    }else{
-        for(unsigned i=0;i<sameName;i++){
-            for(unsigned j=0;j<getNumTasks();j++){
-                if(tasks[j].getName()==name2){
-                    tasks[j].toggle();
-                }
-            }
-        }
-        return true;
     }
+    return true;
+    
 }
 ostream& operator << (ostream &os,const List &list){
     os<<list.getName()<<endl;

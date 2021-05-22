@@ -12,7 +12,7 @@ class List {
 	friend ostream& operator << (ostream&,const List &list);
 	protected:
 		string name;
-		vector<Task> tasks;
+		vector <Task> tasks;
 	public:
 		List(string name);// throw ERR_EMPTY;
 		string getName() const;

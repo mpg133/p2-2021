@@ -50,7 +50,7 @@ void Project::showPriority() const {
     if(lists[i].getNumTasks()>0){
       for(unsigned int j=0;j<lists[i].getNumTasks();j++){
         if(!lists[i].getTasks()[j].getIsDone()){
-          AuxList.getTasks().push_back(lists[i].getTasks()[j]);
+          AuxList.addTask(lists[i].getTasks()[j]);
         }
       }
     }
@@ -58,7 +58,7 @@ void Project::showPriority() const {
   if(AuxList.getNumTasks()>0){
     oldPos=Oldest(AuxList);
     prioTask=AuxList.getTasks()[oldPos];
-    cout<<prioTask.getName()<<" ("<<prioTask.getDeadline().year<<"-"<<prioTask.getDeadline().month<<"-"<<prioTask.getDeadline().day<<")";
+    cout<<"Highest priority: "<<prioTask.getName()<<" ("<<prioTask.getDeadline().year<<"-"<<prioTask.getDeadline().month<<"-"<<prioTask.getDeadline().day<<")";
   }
 
 }
@@ -146,36 +146,43 @@ void Project::edit(string name2,string description2){
     }
 
 }   
-void Project::addList(string nameList){
+void Project::addList(string namelist){
  cin.clear();
- string usuName;
- try{   
-    if(nameList.empty()){
-        usuName=AskName("",false); 
-        List list(usuName);
-        lists[getPosList(usuName)].getTasks().clear();
-        lists.push_back(list);
-    }else{
-        List list(nameList);
-        lists[getPosList(usuName)].getTasks().clear();
-        lists.push_back(list);
+ 
+
+    if(namelist.empty()){
+	
+		namelist=AskName("",false);
     }
-  }catch(Error ERR_LIST_NAME){
-    Util::error(ERR_LIST_NAME);
-    return;
-  }
+    try{
+		List list(namelist);
+        if(getPosList(namelist)==-1){
+            lists.push_back(list);
+        }else{
+            Util::error(ERR_LIST_NAME);
+        }
+ 		
+	}catch(Error ERR_EMPTY){
+    		
+	    Util::error(ERR_EMPTY);
+    	    	
+  	}
+
+	   
+
+ 
    
 }
 void Project::deleteList(string name2){
     cin.clear();
  string usuName; 
-    if(name2 == ""){
+    if(name2.empty()){
         usuName = AskName("",false);
     }else{
         usuName=name2;
     }
-    if(getPosList(name2)!=-1){
-        lists.erase(lists.begin()+getPosList(name2));
+    if(getPosList(usuName)!=-1){
+        lists.erase(lists.begin()+getPosList(usuName));
     }else{           
         Util::error(ERR_LIST_NAME);
     }
@@ -187,7 +194,7 @@ void Project::addTaskToList(string name2){
    string taskName,deadline;   
    int time=0;
     string usuName; 
-    if(name2 == ""){
+    if(name2.empty()){
         usuName = AskName("",false);
     }else{
         usuName=name2;
@@ -198,11 +205,18 @@ void Project::addTaskToList(string name2){
         Task task(taskName);
         cout<<"Enter deadline: ";
         getline(cin,deadline);
-        task.setDeadline(deadline);
-        cout<<"Enter expected time: ";
-        cin>>time;
-        task.setTime(time);
-        lists[getPosList(usuName)].getTasks().push_back(task);
+        if( task.setDeadline(deadline)){
+            cout<<"Enter expected time: ";
+            cin>>time;
+            if(task.setTime(time)){
+          
+                lists[getPosList(usuName)].addTask(task);
+            }
+        }
+        
+        
+        
+       
     }else{
         Util::error(ERR_LIST_NAME);
     }
@@ -213,7 +227,7 @@ void Project::deleteTaskFromList(string name2){
     string usuName,taskName;
     int SameName=0;
      cin.clear();
-     if(name2 == ""){
+     if(name2.empty()){
         usuName = AskName("",false);
     }else{
         usuName=name2;
@@ -222,17 +236,17 @@ void Project::deleteTaskFromList(string name2){
     if(listPos!=-1){
         cout<<"Enter task name: ";
         getline(cin,taskName);
-        for(unsigned int i=0;i<lists[listPos].getTasks().size();i++){
+        for(unsigned int i=0;i<lists[listPos].getNumTasks();i++){
             if(lists[listPos].getTasks()[i].getName()==taskName){
                  SameName++;
             }
         }
         if(SameName!=0){
         for(int j=0;j<SameName;j++){ //borra la tareas con el mismo nombre
-          for(unsigned int i=0;i<lists[listPos].getTasks().size();i++){
+          for(unsigned int i=0;i<lists[listPos].getNumTasks();i++){
                 if(lists[listPos].getTasks()[i].getName()==taskName){
                   //delete the tasks at vector lists
-                  lists[listPos].getTasks().erase(lists[listPos].getTasks().begin()+i);
+                  lists[listPos].deleteTask(taskName);
                   i--;
                     
                 }
@@ -251,9 +265,9 @@ void Project::deleteTaskFromList(string name2){
 void Project::toggleTaskFromList(string name2){
       cin.clear();
       string usuName; 
-      bool tasknameErr=true;
+     
 
-    if(name2 == ""){
+    if(name2.empty()){
         usuName = AskName("",false);
     }else{
         usuName=name2;
@@ -263,24 +277,10 @@ void Project::toggleTaskFromList(string name2){
         string taskName;
         cout<<"Enter task name: ";
         getline(cin,taskName);
-        
-        int taskSize=lists[listPos].getTasks().size();
-
-        if(lists[listPos].getTasks().size()==0){
-            Util::error(ERR_TASK_NAME);
-        }else{
+      
+        lists[listPos].toggleTask(taskName);
             
-        for(int i=0;i<taskSize;i++){
-            if(lists[listPos].getTasks()[i].getName()==taskName){
-                tasknameErr=false;
-                lists[listPos].getTasks()[i].toggle();
-            }
-
-        }   
-            if(tasknameErr){
-                 Util::error(ERR_TASK_NAME);
-            }
-        }
+            
     }else{
         Util::error(ERR_LIST_NAME);
     }
@@ -345,7 +345,10 @@ ostream& operator << (ostream &os,const Project &project){
     int numDone = 0;
     int timeTotal = 0;
     int timeDone = 0;
-    os<<"Description: "<<project.getDescription()<<endl;
+    if(!project.getDescription().empty()){
+        os<<"Description: "<<project.getDescription()<<endl;
+    }
+    
     for(unsigned i=0;i<project.lists.size();i++){
         os<<project.lists[i];
         numTasks += project.lists[i].getNumTasks();
@@ -358,7 +361,6 @@ ostream& operator << (ostream &os,const Project &project){
     os<<"Total left: "<<numTasks - numDone<<" ("<<timeTotal - timeDone<<" minutes)"<<endl;
     os<<"Total done: "<<numDone<<" ("<<timeDone<<" minutes)"<<endl;
     if(numTasks>0){
-        os<<"Highest priority";
         project.showPriority();
         os<<endl;
     }
